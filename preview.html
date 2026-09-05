@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ukil - Minimalist Legal & Financial Q&A Preview</title>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #080b11;
+      --bg-card: rgba(15, 23, 42, 0.65);
+      --bg-card-hover: rgba(26, 36, 61, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.25);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      
+      --accent-cyan: #38bdf8;
+      --accent-rose: #f43f5e;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-indigo: #6366f1;
+      
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --shadow-glow: 0 0 30px rgba(56, 189, 248, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 85% 60%, rgba(244, 63, 94, 0.04) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    /* Header Navbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8, 11, 17, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.9rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.2rem;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    }
+
+    .brand-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .brand-tag {
+      font-size: 0.7rem;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.2s ease;
+    }
+
+    nav a:hover, nav a.active {
+      color: #fff;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: none;
+      padding: 0.65rem 1.3rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .badge-no-signup {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(244, 63, 94, 0.12);
+      color: #fda4af;
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      padding: 0.35rem 1rem;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-title {
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 2rem auto;
+      font-weight: 400;
+    }
+
+    /* Search Box */
+    .search-wrapper {
+      max-width: 640px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 1rem 1.2rem 1rem 3.2rem;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+    }
+
+    /* Quick Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 1.2rem;
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Filter Tabs */
+    .filters {
+      display: flex;
+      gap: 0.6rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .filter-chip {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .filter-chip:hover, .filter-chip.active {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    /* Feed Grid */
+    .feed-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Issue Card */
+    .issue-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .issue-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .issue-card.critical {
+      border-left: 4px solid var(--accent-rose);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tags-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tag-category {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .cat-bribe { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
+    .cat-property { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .cat-tax { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+    .urgency-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .urg-critical { background: rgba(244, 63, 94, 0.2); color: #fca5a5; }
+    .urg-high { background: rgba(245, 158, 11, 0.2); color: #fde68a; }
+    .urg-medium { background: rgba(56, 189, 248, 0.2); color: #bae6fd; }
+
+    .card-time {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    .issue-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.6rem;
+      line-height: 1.35;
+    }
+
+    .issue-title a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .issue-title a:hover {
+      color: var(--accent-cyan);
+    }
+
+    .issue-excerpt {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 1rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .author-badge {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .actions-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .advice-status {
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-solved { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-given { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .status-pending { background: rgba(156, 163, 175, 0.12); color: #d1d5db; border: 1px solid rgba(156, 163, 175, 0.2); }
+
+    .btn-upvote {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-upvote:hover, .btn-upvote.voted {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      max-width: 620px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      color: #e5e7eb;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .radio-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .radio-card {
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .radio-card input {
+      display: none;
+    }
+
+    .radio-card:has(input:checked) {
+      border-color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .success-alert {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <a href="#" class="brand">
+      <div class="brand-logo">⚖️</div>
+      <div>
+        <span class="brand-name">UKIL</span>
+        <span class="brand-tag">NO-SIGNUP Q&A</span>
+      </div>
+    </a>
+
+    <nav>
+      <a href="#" class="active">Public Feed</a>
+      <a href="#professionals">Verified Experts</a>
+      <a href="#track">Track Issue</a>
+      <button class="btn-primary" onclick="openModal()">
+        <span>+ Ask Query / Report Issue</span>
+      </button>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="badge-no-signup">
+        ⚡ No Account Required • Ask Anonymously or Publicly
+      </div>
+      <h1 class="hero-title">Get Legal Advice & Financial Solutions Fast</h1>
+      <p class="hero-subtitle">
+        Facing bribery, land disputes, tax audits, or employment issues? Ask your query freely. Verified lawyers and CPAs answer for the public interest.
+      </p>
+
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" placeholder="Search issues (e.g. Land mutation bribe, Tax audit notice, Landlord dispute)..." id="searchInput" onkeyup="filterSearch()">
+      </div>
+    </section>
+
+    <!-- Quick Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-number">1,482</div>
+        <div class="stat-label">Issues Resolved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">240+</div>
+        <div class="stat-label">Verified Lawyers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">98%</div>
+        <div class="stat-label">Anonymous Friendly</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">&lt; 4 Hours</div>
+        <div class="stat-label">Avg Advice Time</div>
+      </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="filters">
+      <button class="filter-chip active" onclick="filterCategory('all', this)">All Submissions</button>
+      <button class="filter-chip" onclick="filterCategory('bribes', this)">🚨 Bribes & Corruption</button>
+      <button class="filter-chip" onclick="filterCategory('property', this)">🏠 Property & Land</button>
+      <button class="filter-chip" onclick="filterCategory('tax', this)">💰 Tax & Accounting</button>
+      <button class="filter-chip" onclick="filterCategory('employment', this)">👔 Employment & Rights</button>
+      <button class="filter-chip" onclick="filterCategory('family', this)">👨‍👩‍👧 Family & Inheritance</button>
+    </div>
+
+    <!-- Live Public Issue Cards -->
+    <div class="feed-grid" id="feedGrid">
+      
+      <!-- Card 1 -->
+      <article class="issue-card critical" data-category="bribes">
+        <div class="card-header">
+          <div class="tags-group">
+            <span class="tag-category cat-bribe">🚨 Bribes & Corruption</span>
+            <span class="urgency-pill urg-critical">🔥 Critical Urgency</span>
+          </div>
+          <span class="card-time">2 hours ago • Dhaka</span>
+        </div>
+        <h2 class="issue-title"><a href="#">Demanded ৳50,000 Bribe for Land Mutation in Mirpur Land Office</a></h2>
+        <p class="issue-excerpt">
+          I submitted all valid land deeds and tax receipts for mutation last month, but the assistant officer refuses to process the file without an unofficial cash payment. What are my immediate legal remedies under the Anti-Corruption Act?
+        </p>
+        <div class="card-footer">
+          <div class="author-info">
+            👤 Posted by: <span class="author-badge">Anonymous Citizen</span>
+          </div>
+          <div class="actions-group">
+            <span class="advice-status status-given">⚖️ 2 Lawyer Advice Given</span>
+            <button class="btn-upvote" onclick="upvote(this, 34)">👍 <span>34</span></button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="issue-card" data-category="employment">
+        <div class="card-header">
+          <div class="tags-group">
+            <span class="tag-category cat-property">👔 Employment & Rights</span>
+            <span class="urgency-pill urg-high">⚠️ High Urgency</span>
+          </div>
+          <span class="card-time">5 hours ago • Chittagong</span>
+        </div>
+        <h2 class="issue-title"><a href="#">Employer Withholding Final Settlement & Provident Fund After Resignation</a></h2>
+        <p class="issue-excerpt">
+          I resigned with a full 60-day formal notice period. However, the company HR is delaying my final clearance payout and provident fund release for over 90 days citing internal policy review. Is this legal under Labour Law 2006?
+        </p>
+        <div class="card-footer">
+          <div class="author-info">
+            👤 Posted by: <span class="author-badge">Tanvir A.</span>
+          </div>
+          <div class="actions-group">
+            <span class="advice-status status-solved">✅ Verified Solution Accepted</span>
+            <button class="btn-upvote" onclick="upvote(this, 19)">👍 <span>19</span></button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="issue-card" data-category="tax">
+        <div class="card-header">
+          <div class="tags-group">
+            <span class="tag-category cat-tax">💰 Tax & Accounting</span>
+            <span class="urgency-pill urg-medium">🔷 Medium Urgency</span>
+          </div>
+          <span class="card-time">1 day ago • Sylhet</span>
+        </div>
+        <h2 class="issue-title"><a href="#">Unexpected Income Tax Audit Penalty Notice for Previous Assessment Year</a></h2>
+        <p class="issue-excerpt">
+          Received a formal show-cause notice from NBR claiming tax underpayment for 2023. I filed through an online portal correctly. Can a certified tax consultant help appeal this before the Deputy Commissioner of Taxes?
+        </p>
+        <div class="card-footer">
+          <div class="author-info">
+            👤 Posted by: <span class="author-badge">Anonymous Citizen</span>
+          </div>
+          <div class="actions-group">
+            <span class="advice-status status-pending">⏳ Awaiting Lawyer Advice</span>
+            <button class="btn-upvote" onclick="upvote(this, 8)">👍 <span>8</span></button>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+
+  <!-- Submission Modal (No Signup) -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      
+      <h2 style="margin-bottom: 0.4rem; font-weight: 800;">Submit Issue / Query</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        No account needed. Post your legal or financial problem freely.
+      </p>
+
+      <div class="success-alert" id="successAlert">
+        🎉 <strong>Submitted Successfully!</strong><br>
+        Your Tracking Code: <strong style="color: #fff; background: rgba(0,0,0,0.3); padding:2px 8px; border-radius:4px;">UKIL-8942-X</strong><br>
+        Keep this code to track lawyer advice or add updates at <code>/track</code>.
+      </div>
+
+      <form id="askForm" onsubmit="handleFormSubmit(event)">
+        
+        <!-- Identity Choice -->
+        <div class="form-group">
+          <label class="form-label">How would you like to publish this?</label>
+          <div class="radio-group">
+            <label class="radio-card">
+              <input type="radio" name="identity" value="anonymous" checked onchange="toggleNameInput(false)">
+              <div style="font-weight: 700; font-size: 0.95rem;">👤 Anonymous</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Hide name completely</div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="identity" value="public" onchange="toggleNameInput(true)">
+              <div style="font-weight: 700; font-size: 0.95rem;">✍️ Public Name</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Show your name / alias</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" id="nameInputWrapper" style="display: none;">
+          <label class="form-label">Your Name or Alias</label>
+          <input type="text" class="form-control" placeholder="e.g. Rahim Khan or Concerned Citizen">
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-control">
+            <option>🚨 Anti-Corruption & Bribes</option>
+            <option>🏠 Property & Land Disputes</option>
+            <option>💰 Tax, Audit & Accounting</option>
+            <option>👔 Employment & Labour Rights</option>
+            <option>👨‍👩‍👧 Family Law & Inheritance</option>
+            <option>⚖️ Criminal Law</option>
+            <option>💼 Corporate & Business</option>
+          </select>
+        </div>
+
+        <!-- Title -->
+        <div class="form-group">
+          <label class="form-label">Issue Title</label>
+          <input type="text" class="form-control" placeholder="Summarize your issue in one sentence..." required>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label class="form-label">Detailed Story / Description</label>
+          <textarea class="form-control" rows="4" placeholder="Explain what happened, office/authority involved, location, and what advice you need..." required></textarea>
+        </div>
+
+        <!-- Urgency -->
+        <div class="form-group">
+          <label class="form-label">Urgency Level</label>
+          <select class="form-control">
+            <option>Low (General Legal Inquiry)</option>
+            <option selected>Medium (Action Needed Soon)</option>
+            <option>High (Legal Deadline Approaching)</option>
+            <option>Critical (Immediate Threat / Active Corruption)</option>
+          </select>
+        </div>
+
+        <!-- Optional Contact -->
+        <div class="form-group">
+          <label class="form-label">Notification Email / Phone (Optional)</label>
+          <input type="email" class="form-control" placeholder="Optional: To receive real-time lawyer advice alerts">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.9rem; font-size: 1rem; margin-top: 1rem;">
+          Publish Issue & Get Legal Advice
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal() {
+      document.getElementById('modalBackdrop').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modalBackdrop').classList.remove('active');
+    }
+
+    function toggleNameInput(show) {
+      document.getElementById('nameInputWrapper').style.display = show ? 'block' : 'none';
+    }
+
+    function upvote(btn, currentCount) {
+      const span = btn.querySelector('span');
+      if (btn.classList.contains('voted')) {
+        btn.classList.remove('voted');
+        span.textContent = currentCount;
+      } else {
+        btn.classList.add('voted');
+        span.textContent = currentCount + 1;
+      }
+    }
+
+    function filterCategory(cat, el) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+
+      const cards = document.querySelectorAll('.issue-card');
+      cards.forEach(card => {
+        if (cat === 'all' || card.dataset.category === cat) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function filterSearch() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const cards = document.querySelectorAll('.issue-card');
+
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? 'block' : 'none';
+      });
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      document.getElementById('successAlert').style.display = 'block';
+      setTimeout(() => {
+        closeModal();
+        document.getElementById('successAlert').style.display = 'none';
+        document.getElementById('askForm').reset();
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
