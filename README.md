@@ -21,3 +21,15 @@ npm install
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Deployment on Vercel
+
+When deploying to [Vercel](https://vercel.com), do not commit `.env.local` to Git. Instead, set the following Environment Variables in your Vercel Project Settings (**Settings > Environment Variables**):
+
+| Variable Name | Description | Example |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase Project API URL | `https://your-project.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase Project public anon key | `eyJhbGciOiJIUz...` |
+
+Both variables must be enabled for **Production**, **Preview**, and **Development** environments in Vercel.
+
