@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Sparkles, Scale, ShieldCheck, Clock, Users, ArrowRight, MessageSquareCheck, PlusCircle } from "lucide-react";
-import { MOCK_QUESTIONS, MOCK_CATEGORIES, MOCK_PROFESSIONALS, Question } from "../lib/mockData";
-import { DataService } from "../lib/db";
+import { MOCK_QUESTIONS, MOCK_CATEGORIES, MOCK_PROFESSIONALS, Question, Professional } from "../lib/mockData";
+import { DataService, PlatformStats } from "../lib/db";
 import QuestionCard from "../components/QuestionCard";
 import SubmitModal from "../components/SubmitModal";
 
@@ -13,11 +13,22 @@ export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [stats, setStats] = useState<PlatformStats>(() => DataService.getPlatformStats());
+  const [professionals, setProfessionals] = useState<Professional[]>(() => DataService.getProfessionals());
 
   useEffect(() => {
     setQuestions(DataService.getQuestions());
+    setStats(DataService.getPlatformStats());
+    setProfessionals(DataService.getProfessionals());
+
     DataService.syncFromSupabase().then(() => {
       setQuestions(DataService.getQuestions());
+      setProfessionals(DataService.getProfessionals());
+      setStats(DataService.getPlatformStats());
+    });
+
+    DataService.getPlatformStatsAsync().then((liveStats) => {
+      setStats(liveStats);
     });
   }, []);
 
@@ -25,6 +36,10 @@ export default function HomePage() {
     setQuestions(DataService.getQuestions());
     DataService.syncFromSupabase().then(() => {
       setQuestions(DataService.getQuestions());
+      setStats(DataService.getPlatformStats());
+    });
+    DataService.getPlatformStatsAsync().then((liveStats) => {
+      setStats(liveStats);
     });
   };
 
@@ -80,19 +95,27 @@ export default function HomePage() {
       {/* 2. Platform Impact Stats */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-5xl mx-auto">
         <div className="bg-white border border-stone-200 p-5 rounded-2xl text-center shadow-sm">
-          <div className="text-3xl sm:text-4xl font-extrabold text-brand-coral mb-1">1,482</div>
+          <div className="text-3xl sm:text-4xl font-extrabold text-brand-coral mb-1">
+            {stats.issuesResolved.toLocaleString()}
+          </div>
           <div className="text-xs font-semibold uppercase tracking-wider text-stone-500">Issues Resolved</div>
         </div>
         <div className="bg-white border border-stone-200 p-5 rounded-2xl text-center shadow-sm">
-          <div className="text-3xl sm:text-4xl font-extrabold text-stone-900 mb-1">240+</div>
+          <div className="text-3xl sm:text-4xl font-extrabold text-stone-900 mb-1">
+            {stats.verifiedLawyers > 50 ? `${stats.verifiedLawyers}+` : stats.verifiedLawyers}
+          </div>
           <div className="text-xs font-semibold uppercase tracking-wider text-stone-500">Verified Lawyers</div>
         </div>
         <div className="bg-white border border-stone-200 p-5 rounded-2xl text-center shadow-sm">
-          <div className="text-3xl sm:text-4xl font-extrabold text-emerald-600 mb-1">98%</div>
+          <div className="text-3xl sm:text-4xl font-extrabold text-emerald-600 mb-1">
+            {stats.anonymousPercentage}%
+          </div>
           <div className="text-xs font-semibold uppercase tracking-wider text-stone-500">Anonymous Friendly</div>
         </div>
         <div className="bg-white border border-stone-200 p-5 rounded-2xl text-center shadow-sm">
-          <div className="text-3xl sm:text-4xl font-extrabold text-indigo-600 mb-1">&lt; 4 Hours</div>
+          <div className="text-3xl sm:text-4xl font-extrabold text-indigo-600 mb-1">
+            {stats.avgAdviceTime}
+          </div>
           <div className="text-xs font-semibold uppercase tracking-wider text-stone-500">Avg Advice Time</div>
         </div>
       </section>
@@ -178,7 +201,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {MOCK_PROFESSIONALS.map((prof) => (
+          {(professionals.length > 0 ? professionals.slice(0, 3) : MOCK_PROFESSIONALS).map((prof) => (
             <div key={prof.id} className="bg-white border border-stone-200 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-coral transition-all">
               <div className="flex items-center gap-3">
                 <img src={prof.avatar} alt={prof.name} className="w-14 h-14 rounded-full object-cover border-2 border-brand-coral" />

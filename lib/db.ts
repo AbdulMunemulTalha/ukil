@@ -109,6 +109,41 @@ export function saveStoredProfessionals(professionals: Professional[]) {
   } catch (e) {}
 }
 
+export interface PlatformStats {
+  issuesResolved: number;
+  verifiedLawyers: number;
+  anonymousPercentage: number;
+  avgAdviceTime: string;
+}
+
+const LOCAL_STORAGE_KEY_STATS = 'ukil_platform_stats_v2';
+
+const DEFAULT_PLATFORM_STATS: PlatformStats = {
+  issuesResolved: 2,
+  verifiedLawyers: 4,
+  anonymousPercentage: 50,
+  avgAdviceTime: '< 4 Hours',
+};
+
+export function getStoredPlatformStats(): PlatformStats {
+  if (typeof window === 'undefined') return DEFAULT_PLATFORM_STATS;
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_STATS);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {}
+  return DEFAULT_PLATFORM_STATS;
+}
+
+export function saveStoredPlatformStats(stats: PlatformStats) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY_STATS, JSON.stringify(stats));
+  } catch (e) {}
+}
+
+
 // Data Access Service (Hybrid: Live Supabase with LocalStorage offline/caching)
 export const DataService = {
   // Get all categories
@@ -227,6 +262,9 @@ export const DataService = {
         }));
         saveStoredProfessionals(mappedProfs);
       }
+
+      // 5. Fetch and synchronize live Platform Impact Stats
+      await this.getPlatformStatsAsync();
     } catch (err) {
       console.warn('Sync from Supabase failed, using local cache:', err);
     }
@@ -570,10 +608,14 @@ export const DataService = {
     const supabase = createClient();
     if (supabase) {
       if (answerId.length > 30) {
-        supabase.from('answers').update({ is_accepted: true }).eq('id', answerId).then(() => {});
+        supabase.from('answers').update({ is_accepted: true }).eq('id', answerId).then(() => {
+          this.getPlatformStatsAsync();
+        });
       }
       if (questionId.length > 30) {
-        supabase.from('questions').update({ status: 'resolved' }).eq('id', questionId).then(() => {});
+        supabase.from('questions').update({ status: 'resolved' }).eq('id', questionId).then(() => {
+          this.getPlatformStatsAsync();
+        });
       }
     }
   },
@@ -645,5 +687,141 @@ export const DataService = {
   getConsultations(): ConsultationRequest[] {
     return getStoredConsultations();
   },
+
+  // Synchronous Platform Impact Stats for instant render
+  getPlatformStats(): PlatformStats {
+    const cached = getStoredPlatformStats();
+    if (cached && (cached.issuesResolved > 0 || cached.verifiedLawyers > 0)) {
+      return cached;
+    }
+
+    const questions = getStoredQuestions();
+    const answers = getStoredAnswers();
+    const profs = getStoredProfessionals();
+
+    const acceptedQIds = new Set(answers.filter((a) => a.isAccepted).map((a) => a.questionId));
+    const resolvedCount = questions.filter((q) => q.status === 'resolved' || acceptedQIds.has(q.id)).length;
+    const verifiedCount = profs.filter((p) => p.verified !== false).length;
+    const totalQ = questions.length;
+    const anonQ = questions.filter((q) => q.isAnonymous).length;
+    const anonymousPercentage = totalQ > 0 ? Math.round((anonQ / totalQ) * 100) : 100;
+
+    return {
+      issuesResolved: resolvedCount,
+      verifiedLawyers: verifiedCount,
+      anonymousPercentage,
+      avgAdviceTime: '< 4 Hours',
+    };
+  },
+
+  // Asynchronous live Platform Impact Stats from database
+  async getPlatformStatsAsync(): Promise<PlatformStats> {
+    const supabase = createClient();
+    if (!supabase) return this.getPlatformStats();
+
+    try {
+      // 1. Live count of verified lawyers directly from accounts in Supabase
+      const { count: verifiedCount, error: profErr } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'professional')
+        .eq('is_verified', true);
+
+      // 2. Live questions for resolved count, anonymous %, and advice turnaround calculation
+      const { data: dbQuestions, error: qErr } = await supabase
+        .from('questions')
+        .select('id, status, is_anonymous, created_at');
+
+      // 3. Live answers for accepted solutions and advice timestamps
+      const { data: dbAnswers, error: aErr } = await supabase
+        .from('answers')
+        .select('question_id, is_accepted, created_at');
+
+      if (qErr && !dbQuestions) {
+        return this.getPlatformStats();
+      }
+
+      const questionsList = dbQuestions || [];
+      const answersList = dbAnswers || [];
+
+      // A. Issues Resolved: count questions that are resolved or have an accepted answer
+      const acceptedQuestionIds = new Set(
+        answersList.filter((a) => a.is_accepted).map((a) => a.question_id)
+      );
+      const issuesResolved = questionsList.filter(
+        (q) => q.status === 'resolved' || acceptedQuestionIds.has(q.id)
+      ).length;
+
+      // B. Verified Lawyers: count of verified professional accounts on the website
+      const verifiedLawyers = typeof verifiedCount === 'number'
+        ? verifiedCount
+        : getStoredProfessionals().filter((p) => p.verified !== false).length;
+
+      // C. Anonymous Friendly %: percentage of questions submitted anonymously
+      const totalQuestions = questionsList.length;
+      const anonymousQuestions = questionsList.filter((q) => q.is_anonymous === true).length;
+      const anonymousPercentage = totalQuestions > 0
+        ? Math.round((anonymousQuestions / totalQuestions) * 100)
+        : 100;
+
+      // D. Average Advice Time: dynamic turnaround from question creation to first response
+      const adviceDurationsInHours: number[] = [];
+      const answersByQ = new Map<string, string[]>();
+
+      for (const ans of answersList) {
+        if (!ans.question_id || !ans.created_at) continue;
+        if (!answersByQ.has(ans.question_id)) {
+          answersByQ.set(ans.question_id, []);
+        }
+        answersByQ.get(ans.question_id)!.push(ans.created_at);
+      }
+
+      for (const q of questionsList) {
+        const timestamps = answersByQ.get(q.id);
+        if (!timestamps || timestamps.length === 0 || !q.created_at) continue;
+
+        const qTime = new Date(q.created_at).getTime();
+        const firstAnsTime = Math.min(...timestamps.map((t) => new Date(t).getTime()));
+        const diffHours = (firstAnsTime - qTime) / (1000 * 60 * 60);
+
+        if (diffHours >= 0 && diffHours < 720) {
+          adviceDurationsInHours.push(diffHours);
+        }
+      }
+
+      let avgAdviceTime = '< 4 Hours';
+      if (adviceDurationsInHours.length > 0) {
+        const avgHours =
+          adviceDurationsInHours.reduce((sum, val) => sum + val, 0) / adviceDurationsInHours.length;
+        if (avgHours < 1) {
+          avgAdviceTime = '< 1 Hour';
+        } else if (avgHours <= 2) {
+          avgAdviceTime = '< 2 Hours';
+        } else if (avgHours <= 4) {
+          avgAdviceTime = '< 4 Hours';
+        } else if (avgHours <= 12) {
+          avgAdviceTime = '< 12 Hours';
+        } else if (avgHours <= 24) {
+          avgAdviceTime = '< 24 Hours';
+        } else {
+          avgAdviceTime = `< ${Math.ceil(avgHours)} Hours`;
+        }
+      }
+
+      const calculatedStats: PlatformStats = {
+        issuesResolved,
+        verifiedLawyers,
+        anonymousPercentage,
+        avgAdviceTime,
+      };
+
+      saveStoredPlatformStats(calculatedStats);
+      return calculatedStats;
+    } catch (err) {
+      console.warn('Error fetching live platform stats from Supabase:', err);
+      return this.getPlatformStats();
+    }
+  },
 };
+
 
