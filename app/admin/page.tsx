@@ -477,14 +477,14 @@ export default function AdminDashboardPage() {
   if (!adminUser && isLoading) {
     return (
       <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center space-y-3">
-        <div className="w-10 h-10 border-4 border-stone-800 border-t-amber-400 rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-stone-800 border-t-brand-coral rounded-full animate-spin" />
         <p className="text-xs font-semibold text-stone-400 font-mono">Authenticating Judicial Administration Session...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex text-stone-900 selection:bg-amber-400 selection:text-stone-950 font-sans">
+    <div className="min-h-screen bg-surface-body flex text-stone-900 selection:bg-brand-coral selection:text-white font-sans">
       
       {/* MOBILE BACKDROP */}
       {mobileMenuOpen && (
@@ -505,15 +505,15 @@ export default function AdminDashboardPage() {
         {/* Sidebar Header */}
         <div className="h-16 px-5 flex items-center justify-between border-b border-stone-800/80 bg-stone-950 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-stone-950 shadow-md shadow-amber-500/20 shrink-0">
-              <Shield className="w-5 h-5 fill-stone-950" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-coral to-red-600 flex items-center justify-center text-white shadow-coral shrink-0">
+              <Scale className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-sm tracking-wider text-white uppercase font-mono">
                   UKIL COMMAND
                 </span>
-                <span className="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9px] font-extrabold px-1.5 py-0.2 rounded font-mono">
+                <span className="bg-brand-coral/20 text-brand-coral border border-brand-coral/30 text-[9px] font-extrabold px-1.5 py-0.2 rounded font-mono">
                   v3.4
                 </span>
               </div>
@@ -532,7 +532,7 @@ export default function AdminDashboardPage() {
         <div className="p-3.5 mx-3 mt-3 rounded-2xl bg-stone-900/90 border border-stone-800 shadow-inner shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-black text-xs">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-coral/25 to-brand-coral/10 border border-brand-border/40 text-brand-coral flex items-center justify-center font-black text-xs">
                 {adminUser?.name?.charAt(0).toUpperCase() || "A"}
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-stone-950 animate-pulse" />
@@ -546,7 +546,7 @@ export default function AdminDashboardPage() {
           </div>
           <div className="mt-2.5 pt-2 border-t border-stone-800/60 flex items-center justify-between">
             {adminUser?.isSuperAdmin ? (
-              <span className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 bg-brand-coral/20 text-brand-coral border border-brand-coral/30 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
                 👑 Super Admin
               </span>
             ) : canManageAdmins ? (
@@ -582,19 +582,19 @@ export default function AdminDashboardPage() {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                   activeTab === "kyc"
-                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    ? "bg-brand-coral text-white shadow-coral font-bold"
                     : "text-stone-300 hover:text-white hover:bg-stone-900"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck className={`w-4 h-4 ${activeTab === "kyc" ? "text-stone-950" : "text-amber-400"}`} />
+                  <ShieldCheck className={`w-4 h-4 ${activeTab === "kyc" ? "text-white" : "text-brand-coral"}`} />
                   <span>Advocate KYC Hub</span>
                 </div>
                 {pendingKycCount > 0 && (
                   <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                     activeTab === "kyc"
-                      ? "bg-stone-950 text-amber-300"
-                      : "bg-amber-500 text-stone-950 animate-pulse"
+                      ? "bg-white text-brand-coral"
+                      : "bg-brand-coral text-white animate-pulse"
                   }`}>
                     {pendingKycCount}
                   </span>
@@ -618,16 +618,16 @@ export default function AdminDashboardPage() {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                   activeTab === "questions"
-                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    ? "bg-brand-coral text-white shadow-coral font-bold"
                     : "text-stone-300 hover:text-white hover:bg-stone-900"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <MessageSquare className={`w-4 h-4 ${activeTab === "questions" ? "text-stone-950" : "text-emerald-400"}`} />
+                  <MessageSquare className={`w-4 h-4 ${activeTab === "questions" ? "text-white" : "text-emerald-400"}`} />
                   <span>Legal Inquiries</span>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                  activeTab === "questions" ? "bg-stone-950 text-white font-bold" : "bg-stone-800 text-stone-400"
+                  activeTab === "questions" ? "bg-white/20 text-white font-bold" : "bg-stone-800 text-stone-400"
                 }`}>
                   {questions.length}
                 </span>
@@ -643,16 +643,16 @@ export default function AdminDashboardPage() {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                   activeTab === "answers"
-                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    ? "bg-brand-coral text-white shadow-coral font-bold"
                     : "text-stone-300 hover:text-white hover:bg-stone-900"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Scale className={`w-4 h-4 ${activeTab === "answers" ? "text-stone-950" : "text-blue-400"}`} />
+                  <Scale className={`w-4 h-4 ${activeTab === "answers" ? "text-white" : "text-blue-400"}`} />
                   <span>Advocate Advice</span>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                  activeTab === "answers" ? "bg-stone-950 text-white font-bold" : "bg-stone-800 text-stone-400"
+                  activeTab === "answers" ? "bg-white/20 text-white font-bold" : "bg-stone-800 text-stone-400"
                 }`}>
                   {answers.length}
                 </span>
@@ -668,16 +668,16 @@ export default function AdminDashboardPage() {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                   activeTab === "consultations"
-                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    ? "bg-brand-coral text-white shadow-coral font-bold"
                     : "text-stone-300 hover:text-white hover:bg-stone-900"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Calendar className={`w-4 h-4 ${activeTab === "consultations" ? "text-stone-950" : "text-purple-400"}`} />
+                  <Calendar className={`w-4 h-4 ${activeTab === "consultations" ? "text-white" : "text-purple-400"}`} />
                   <span>Consultations</span>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                  activeTab === "consultations" ? "bg-stone-950 text-white font-bold" : "bg-stone-800 text-stone-400"
+                  activeTab === "consultations" ? "bg-white/20 text-white font-bold" : "bg-stone-800 text-stone-400"
                 }`}>
                   {consultations.length}
                 </span>
@@ -700,16 +700,16 @@ export default function AdminDashboardPage() {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                   activeTab === "categories"
-                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    ? "bg-brand-coral text-white shadow-coral font-bold"
                     : "text-stone-300 hover:text-white hover:bg-stone-900"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Layers className={`w-4 h-4 ${activeTab === "categories" ? "text-stone-950" : "text-amber-400"}`} />
+                  <Layers className={`w-4 h-4 ${activeTab === "categories" ? "text-white" : "text-brand-coral"}`} />
                   <span>Practice Categories</span>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                  activeTab === "categories" ? "bg-stone-950 text-white font-bold" : "bg-stone-800 text-stone-400"
+                  activeTab === "categories" ? "bg-white/20 text-white font-bold" : "bg-stone-800 text-stone-400"
                 }`}>
                   {categories.length}
                 </span>
@@ -725,12 +725,12 @@ export default function AdminDashboardPage() {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                   activeTab === "analytics"
-                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    ? "bg-brand-coral text-white shadow-coral font-bold"
                     : "text-stone-300 hover:text-white hover:bg-stone-900"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <BarChart3 className={`w-4 h-4 ${activeTab === "analytics" ? "text-stone-950" : "text-teal-400"}`} />
+                  <BarChart3 className={`w-4 h-4 ${activeTab === "analytics" ? "text-white" : "text-teal-400"}`} />
                   <span>Platform Health & KPIs</span>
                 </div>
               </button>
@@ -752,16 +752,16 @@ export default function AdminDashboardPage() {
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                   activeTab === "admins"
-                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    ? "bg-brand-coral text-white shadow-coral font-bold"
                     : "text-stone-300 hover:text-white hover:bg-stone-900"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Users className={`w-4 h-4 ${activeTab === "admins" ? "text-stone-950" : "text-brand-coral"}`} />
+                  <Users className={`w-4 h-4 ${activeTab === "admins" ? "text-white" : "text-brand-coral"}`} />
                   <span>Admin Team & RBAC</span>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                  activeTab === "admins" ? "bg-stone-950 text-white" : "bg-brand-coral/20 text-brand-coral"
+                  activeTab === "admins" ? "bg-white/20 text-white" : "bg-brand-coral/20 text-brand-coral"
                 }`}>
                   {adminUsers.length}
                 </span>
@@ -792,7 +792,7 @@ export default function AdminDashboardPage() {
               }}
               className="px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-[11px] font-bold border border-stone-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-3 h-3 text-amber-400" />
+              <RefreshCw className="w-3 h-3 text-brand-coral" />
               <span>Sync DB</span>
             </button>
 
@@ -861,7 +861,7 @@ export default function AdminDashboardPage() {
                   else if (activeTab === "admins") setAdminSearchQuery(e.target.value);
                 }}
                 placeholder="Quick search in view..."
-                className="w-full bg-stone-100/80 border border-stone-200/80 rounded-xl pl-8 pr-8 py-1.5 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-stone-400 transition-all font-medium"
+                className="w-full bg-stone-100/80 border border-stone-200/80 rounded-xl pl-8 pr-8 py-1.5 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-brand-coral focus:ring-1 focus:ring-brand-coral/30 transition-all font-medium"
               />
               <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-stone-400 bg-stone-200/60 px-1 py-0.2 rounded border border-stone-300/60">
                 /
@@ -899,7 +899,7 @@ export default function AdminDashboardPage() {
 
             {/* Operator Profile Pill */}
             <div className="flex items-center gap-2 pl-3 border-l border-stone-200">
-              <div className="w-8 h-8 rounded-lg bg-stone-900 text-amber-400 flex items-center justify-center font-black text-xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-coral to-red-600 text-white flex items-center justify-center font-black text-xs shadow-coral">
                 {adminUser?.name?.charAt(0).toUpperCase() || "A"}
               </div>
               <div className="hidden sm:block text-left leading-tight">
@@ -940,7 +940,7 @@ export default function AdminDashboardPage() {
                   {activeTab === "admins" && "Administrator Management & Access Control"}
                 </h1>
                 {activeTab === "kyc" && pendingKycCount > 0 && (
-                  <span className="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black px-2.5 py-0.5 rounded-full">
+                  <span className="bg-brand-light text-brand-coral border border-brand-border text-xs font-black px-2.5 py-0.5 rounded-full">
                     {pendingKycCount} Needs Verification
                   </span>
                 )}
@@ -961,9 +961,9 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={handleOpenAddAdmin}
-                  className="bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+                  className="bg-brand-coral hover:bg-brand-hover text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-coral transition-colors cursor-pointer"
                 >
-                  <UserPlus className="w-4 h-4 text-amber-400" />
+                  <UserPlus className="w-4 h-4 text-white" />
                   <span>Provision New Admin</span>
                 </button>
               )}
@@ -972,9 +972,9 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddCat(!showAddCat)}
-                  className="bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+                  className="bg-brand-coral hover:bg-brand-hover text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-coral transition-colors cursor-pointer"
                 >
-                  <Plus className="w-4 h-4 text-amber-400" />
+                  <Plus className="w-4 h-4 text-white" />
                   <span>Add Practice Specialty</span>
                 </button>
               )}
@@ -1011,17 +1011,17 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className={`p-4 rounded-2xl border shadow-2xs transition-colors relative overflow-hidden ${
-              pendingKycCount > 0 ? "bg-amber-50/70 border-amber-200" : "bg-white border-stone-200"
+              pendingKycCount > 0 ? "bg-brand-light/70 border-brand-border" : "bg-white border-stone-200"
             }`}>
               {pendingKycCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-coral animate-ping" />
               )}
               <div className="flex items-center justify-between text-stone-400 mb-1.5">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-800">KYC Queue</span>
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <span className="text-[10px] uppercase font-bold tracking-wider text-brand-coral font-black">KYC Queue</span>
+                <Clock className="w-3.5 h-3.5 text-brand-coral" />
               </div>
-              <div className="text-xl font-black text-amber-800">{pendingKycCount}</div>
-              <div className="text-[10px] text-amber-700/90 mt-0.5">Pending approval</div>
+              <div className="text-xl font-black text-brand-coral">{pendingKycCount}</div>
+              <div className="text-[10px] text-stone-600 mt-0.5">Pending approval</div>
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-stone-300 transition-colors">
@@ -1076,14 +1076,16 @@ export default function AdminDashboardPage() {
                 onClick={() => setKycFilter("in_review")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   kycFilter === "in_review"
-                    ? "bg-amber-500 text-stone-900 shadow-xs"
+                    ? "bg-brand-coral text-white shadow-coral"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
               >
                 <Clock className="w-3.5 h-3.5" />
                 <span>Pending Review</span>
                 {pendingKycCount > 0 && (
-                  <span className="bg-stone-900 text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    kycFilter === "in_review" ? "bg-white text-brand-coral" : "bg-brand-coral text-white"
+                  }`}>
                     {pendingKycCount}
                   </span>
                 )}
@@ -1135,7 +1137,7 @@ export default function AdminDashboardPage() {
                 value={kycSearch}
                 onChange={(e) => setKycSearch(e.target.value)}
                 placeholder="Search advocate, Bar roll, NID or phone..."
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-9 pr-3 py-2 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-900 font-medium"
+                className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-9 pr-3 py-2 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-brand-coral focus:ring-1 focus:ring-brand-coral/30 font-medium"
               />
             </div>
           </div>
@@ -1159,7 +1161,7 @@ export default function AdminDashboardPage() {
                     key={lawyer.id}
                     className={`bg-white border rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 transition-all relative ${
                       isPendingReview
-                        ? "border-amber-300 ring-2 ring-amber-100"
+                        ? "border-brand-border ring-2 ring-brand-light"
                         : isVerified
                         ? "border-emerald-200"
                         : "border-stone-200"
@@ -1195,8 +1197,8 @@ export default function AdminDashboardPage() {
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Advocate
                         </span>
                       ) : isPendingReview ? (
-                        <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse">
-                          <Clock className="w-3 h-3 text-amber-700" /> Action Required
+                        <span className="bg-brand-light text-brand-coral border border-brand-border text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                          <Clock className="w-3 h-3 text-brand-coral" /> Action Required
                         </span>
                       ) : (
                         <span className="bg-stone-100 text-stone-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">
@@ -1216,7 +1218,7 @@ export default function AdminDashboardPage() {
                             {lawyer.barLicenseNo || lawyer.kycData?.barRollNo || "Not provided"}
                           </span>
                           {lawyer.hideBarLicense && (
-                            <span className="text-[9px] text-amber-700 font-semibold block">
+                            <span className="text-[9px] text-brand-coral/90 font-semibold block">
                               (Marked Private on profile)
                             </span>
                           )}
@@ -1226,7 +1228,7 @@ export default function AdminDashboardPage() {
                           <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">
                             National ID (NID)
                           </span>
-                          <span className="font-mono font-bold text-stone-900 bg-amber-50/80 px-1.5 py-0.5 rounded border border-amber-200 inline-block">
+                          <span className="font-mono font-bold text-stone-900 bg-brand-light/80 px-1.5 py-0.5 rounded border border-brand-border inline-block">
                             {lawyer.nidNumber || lawyer.kycData?.nidNumber || "NID Pending"}
                           </span>
                         </div>
@@ -1425,7 +1427,7 @@ export default function AdminDashboardPage() {
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                               : q.status === "advice_given"
                               ? "bg-blue-100 text-blue-800"
-                              : "bg-amber-50 text-amber-800 border border-amber-200"
+                              : "bg-brand-light text-brand-coral border border-brand-border"
                           }`}
                         >
                           {q.status === "resolved" ? "✓ Resolved" : q.status === "advice_given" ? "Advice Given" : "Awaiting Advice"}
@@ -1590,7 +1592,7 @@ export default function AdminDashboardPage() {
                               ? "bg-blue-100 text-blue-800"
                               : c.status === "cancelled"
                               ? "bg-red-100 text-red-800"
-                              : "bg-amber-100 text-amber-800"
+                              : "bg-brand-light text-brand-coral border border-brand-border"
                           }`}
                         >
                           {c.status}
@@ -1770,7 +1772,7 @@ export default function AdminDashboardPage() {
                   Admin Team & Role-Based Access Control
                 </h2>
                 {adminUser?.isSuperAdmin ? (
-                  <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="bg-brand-light text-brand-coral border border-brand-border text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
                     👑 Super Admin Root Authority
                   </span>
                 ) : (
@@ -1819,17 +1821,17 @@ export default function AdminDashboardPage() {
               onClick={() => setAdminRoleFilter("super_admin")}
               className={`text-left bg-white border rounded-2xl p-4 shadow-xs transition-all cursor-pointer ${
                 adminRoleFilter === "super_admin"
-                  ? "border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/30"
+                  ? "border-brand-coral ring-2 ring-brand-coral/20 bg-brand-light/40"
                   : "border-stone-200 hover:border-stone-300"
               }`}
             >
-              <div className="text-[10px] font-bold text-amber-700 uppercase flex items-center gap-1">
-                <Shield className="w-3 h-3 text-amber-500" /> Super Admins
+              <div className="text-[10px] font-bold text-brand-coral uppercase flex items-center gap-1">
+                <Shield className="w-3 h-3 text-brand-coral" /> Super Admins
               </div>
-              <div className="text-2xl font-black text-amber-600">
+              <div className="text-2xl font-black text-brand-coral">
                 {adminUsers.filter((u) => u.isSuperAdmin || u.role === "super_admin").length}
               </div>
-              <div className="text-[10px] text-amber-700 mt-0.5">Root system authority</div>
+              <div className="text-[10px] text-stone-500 mt-0.5">Root system authority</div>
             </button>
 
             <button
@@ -1888,8 +1890,8 @@ export default function AdminDashboardPage() {
                 onClick={() => setAdminRoleFilter("super_admin")}
                 className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
                   adminRoleFilter === "super_admin"
-                    ? "bg-amber-500 text-stone-950 shadow-xs"
-                    : "text-amber-800 hover:text-amber-950"
+                    ? "bg-brand-coral text-white shadow-coral"
+                    : "text-stone-700 hover:text-stone-900"
                 }`}
               >
                 <span>⚡ Super Admins ({adminUsers.filter((u) => u.isSuperAdmin || u.role === "super_admin").length})</span>
@@ -1925,7 +1927,7 @@ export default function AdminDashboardPage() {
                 value={adminSearchQuery}
                 onChange={(e) => setAdminSearchQuery(e.target.value)}
                 placeholder="Search by name, email, department..."
-                className="w-full bg-white border border-stone-200 rounded-xl pl-10 pr-4 py-2 text-xs text-stone-900 focus:outline-none focus:border-stone-900 shadow-xs"
+                className="w-full bg-white border border-stone-200 rounded-xl pl-10 pr-4 py-2 text-xs text-stone-900 focus:outline-none focus:border-brand-coral focus:ring-1 focus:ring-brand-coral/30 shadow-xs"
               />
             </div>
           </div>
@@ -1954,7 +1956,7 @@ export default function AdminDashboardPage() {
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-xs ${
                               isTargetSuperAdmin
-                                ? "bg-gradient-to-br from-amber-400 to-amber-500 text-stone-950 font-black border border-amber-300"
+                                ? "bg-gradient-to-br from-brand-coral to-red-600 text-white font-black shadow-coral"
                                 : admin.permissions.manage_admins
                                 ? "bg-blue-100 text-blue-900 border border-blue-200"
                                 : "bg-stone-100 text-stone-700 border border-stone-200"
@@ -1978,11 +1980,11 @@ export default function AdminDashboardPage() {
                         <td className="px-6 py-4">
                           {isTargetSuperAdmin ? (
                             <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-950 border border-amber-300 font-black text-[11px] px-2.5 py-1 rounded-lg shadow-2xs">
-                                <Shield className="w-3.5 h-3.5 text-amber-700 fill-amber-700" />
+                              <span className="inline-flex items-center gap-1 bg-brand-light text-brand-coral border border-brand-border font-black text-[11px] px-2.5 py-1 rounded-lg shadow-2xs">
+                                <Shield className="w-3.5 h-3.5 text-brand-coral fill-brand-coral" />
                                 <span>Super Admin</span>
                               </span>
-                              <div className="text-[10px] text-amber-800 font-semibold pl-0.5">
+                              <div className="text-[10px] text-brand-coral font-semibold pl-0.5">
                                 👑 Root Authority • Non-Removable
                               </div>
                             </div>
@@ -2015,7 +2017,7 @@ export default function AdminDashboardPage() {
                         <td className="px-6 py-4">
                           {isTargetSuperAdmin ? (
                             <div className="space-y-1 max-w-sm">
-                              <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-black px-2 py-0.5 rounded-md">
+                              <div className="inline-flex items-center gap-1 bg-brand-light text-brand-coral border border-brand-border text-[10px] font-black px-2 py-0.5 rounded-md">
                                 <span>⚡ Unrestricted: All 7 Operational Modules Active</span>
                               </div>
                               <div className="flex flex-wrap gap-1 text-[10px]">
@@ -2126,9 +2128,9 @@ export default function AdminDashboardPage() {
                             {isTargetSuperAdmin && !adminUser?.isSuperAdmin ? (
                               <div
                                 title="Protected by Root Authority: No other administrator can remove the Super Admin."
-                                className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-2xs select-none"
+                                className="inline-flex items-center gap-1.5 bg-brand-light text-brand-coral border border-brand-border text-[11px] font-bold px-2.5 py-1 rounded-lg shadow-2xs select-none"
                               >
-                                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                                <Lock className="w-3.5 h-3.5 text-brand-coral" />
                                 <span>Super Admin Protected</span>
                               </div>
                             ) : (
@@ -2160,7 +2162,7 @@ export default function AdminDashboardPage() {
       <footer className="mt-auto bg-white border-t border-stone-200 text-stone-500 text-xs py-5 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
           <div className="flex items-center gap-2 text-stone-700 font-medium">
-            <Shield className="w-3.5 h-3.5 text-amber-600" />
+            <Shield className="w-3.5 h-3.5 text-brand-coral" />
             <span>Ukil Judicial & Administrative Console</span>
             <span className="text-stone-300">•</span>
             <span className="text-stone-500">Restricted Internal System</span>
@@ -2212,14 +2214,14 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* National ID & Bar Council Highlight */}
-            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-950 uppercase tracking-wider">
+            <div className="bg-brand-light/60 border border-brand-border rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-stone-900 uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4 text-brand-coral" />
                 <span>Verified Identity & Bar Council Credentials</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                <div className="bg-white border border-amber-200 rounded-xl p-3 space-y-1">
+                <div className="bg-white border border-brand-border/60 rounded-xl p-3 space-y-1">
                   <div className="text-[10px] font-bold text-stone-400 uppercase">
                     National ID (NID / Smart Card)
                   </div>
@@ -2231,7 +2233,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="bg-white border border-amber-200 rounded-xl p-3 space-y-1">
+                <div className="bg-white border border-brand-border/60 rounded-xl p-3 space-y-1">
                   <div className="text-[10px] font-bold text-stone-400 uppercase">
                     Bar Council Registration / Roll No.
                   </div>
@@ -2244,7 +2246,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-amber-200/60">
+              <div className="grid grid-cols-2 gap-3 text-xs pt-2 border-t border-brand-border/60">
                 <div>
                   <span className="text-[10px] text-stone-500 block uppercase font-bold">Bar Association</span>
                   <span className="font-semibold text-stone-800">
@@ -2361,7 +2363,7 @@ export default function AdminDashboardPage() {
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-4 pb-4 border-b border-stone-100">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
+                <div className="w-12 h-12 rounded-2xl bg-brand-light border border-brand-border flex items-center justify-center text-brand-coral shadow-2xs">
                   <ShieldAlert className="w-6 h-6" />
                 </div>
                 <div>
@@ -2383,11 +2385,11 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Invariant Alert Callout */}
-            <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-start gap-3">
-              <Lock className="w-5 h-5 text-amber-800 shrink-0 mt-0.5" />
-              <div className="text-xs text-amber-950 space-y-1">
-                <span className="font-bold block">Super Admin Invariant Active</span>
-                <span>
+            <div className="p-3.5 bg-brand-light/80 border border-brand-border rounded-2xl flex items-start gap-3">
+              <Lock className="w-5 h-5 text-brand-coral shrink-0 mt-0.5" />
+              <div className="text-xs text-stone-900 space-y-1">
+                <span className="font-bold text-brand-coral block">Super Admin Invariant Active</span>
+                <span className="text-stone-600">
                   No administrator added or configured here can ever revoke, delete, or demote a Super Admin.
                   Only root Super Admins have permission to manage Super Admin accounts.
                 </span>
@@ -2515,7 +2517,7 @@ export default function AdminDashboardPage() {
                           permissions: { ...adminForm.permissions, manage_kyc: e.target.checked },
                         })
                       }
-                      className="mt-0.5 rounded text-stone-900 focus:ring-stone-900"
+                      className="mt-0.5 rounded text-brand-coral focus:ring-brand-coral"
                     />
                     <div>
                       <span className="text-xs font-bold text-stone-900 block">Lawyer KYC & NID</span>
@@ -2534,7 +2536,7 @@ export default function AdminDashboardPage() {
                           permissions: { ...adminForm.permissions, manage_questions: e.target.checked },
                         })
                       }
-                      className="mt-0.5 rounded text-stone-900 focus:ring-stone-900"
+                      className="mt-0.5 rounded text-brand-coral focus:ring-brand-coral"
                     />
                     <div>
                       <span className="text-xs font-bold text-stone-900 block">Client Questions</span>
@@ -2553,7 +2555,7 @@ export default function AdminDashboardPage() {
                           permissions: { ...adminForm.permissions, manage_answers: e.target.checked },
                         })
                       }
-                      className="mt-0.5 rounded text-stone-900 focus:ring-stone-900"
+                      className="mt-0.5 rounded text-brand-coral focus:ring-brand-coral"
                     />
                     <div>
                       <span className="text-xs font-bold text-stone-900 block">Advocate Answers</span>
@@ -2572,7 +2574,7 @@ export default function AdminDashboardPage() {
                           permissions: { ...adminForm.permissions, manage_consultations: e.target.checked },
                         })
                       }
-                      className="mt-0.5 rounded text-stone-900 focus:ring-stone-900"
+                      className="mt-0.5 rounded text-brand-coral focus:ring-brand-coral"
                     />
                     <div>
                       <span className="text-xs font-bold text-stone-900 block">Consultation Oversight</span>
@@ -2591,7 +2593,7 @@ export default function AdminDashboardPage() {
                           permissions: { ...adminForm.permissions, manage_categories: e.target.checked },
                         })
                       }
-                      className="mt-0.5 rounded text-stone-900 focus:ring-stone-900"
+                      className="mt-0.5 rounded text-brand-coral focus:ring-brand-coral"
                     />
                     <div>
                       <span className="text-xs font-bold text-stone-900 block">Practice Categories</span>
@@ -2610,7 +2612,7 @@ export default function AdminDashboardPage() {
                           permissions: { ...adminForm.permissions, view_analytics: e.target.checked },
                         })
                       }
-                      className="mt-0.5 rounded text-stone-900 focus:ring-stone-900"
+                      className="mt-0.5 rounded text-brand-coral focus:ring-brand-coral"
                     />
                     <div>
                       <span className="text-xs font-bold text-stone-900 block">Analytics & Finance</span>
@@ -2618,7 +2620,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </label>
 
-                  <label className="sm:col-span-2 flex items-start gap-3 p-3 bg-amber-50/60 rounded-xl border border-amber-200 cursor-pointer hover:border-amber-300 transition-colors">
+                  <label className="sm:col-span-2 flex items-start gap-3 p-3 bg-brand-light/50 rounded-xl border border-brand-border cursor-pointer hover:border-brand-coral/50 transition-colors">
                     <input
                       type="checkbox"
                       checked={adminForm.permissions.manage_admins}
@@ -2629,14 +2631,14 @@ export default function AdminDashboardPage() {
                           permissions: { ...adminForm.permissions, manage_admins: e.target.checked },
                         })
                       }
-                      className="mt-0.5 rounded text-amber-900 focus:ring-amber-900"
+                      className="mt-0.5 rounded text-brand-coral focus:ring-brand-coral"
                     />
                     <div>
-                      <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-amber-700" />
+                      <span className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-brand-coral" />
                         Admin Team & Role-Based Access Control (Full Access Admin)
                       </span>
-                      <span className="text-[10px] text-amber-900/80 block mt-0.5">
+                      <span className="text-[10px] text-stone-600 block mt-0.5">
                         Permits this administrator to view the admin team, provision new admins/moderators, and manage permissions.
                         Note: They will still NEVER have the power to remove or alter any Super Admin.
                       </span>
@@ -2656,9 +2658,9 @@ export default function AdminDashboardPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-brand-coral hover:bg-brand-hover text-white text-xs font-bold flex items-center gap-2 shadow-coral transition-all cursor-pointer"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-white" />
                   <span>{editingAdminUser ? "Update Administrator" : "Confirm & Provision Administrator"}</span>
                 </button>
               </div>

@@ -249,10 +249,10 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 selection:bg-amber-400 selection:text-stone-950 overflow-hidden">
+    <div className="min-h-screen bg-stone-950 text-stone-100 relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 selection:bg-brand-coral selection:text-white overflow-hidden font-sans">
       {/* Ambient Cryptographic Background Lighting */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-coral/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
       
       {/* Subtle Security Grid Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f29370f_1px,transparent_1px),linear-gradient(to_bottom,#1f29370f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
@@ -262,8 +262,8 @@ export default function AdminLoginPage() {
         {/* Terminal Header */}
         <div className="text-center space-y-3">
           <div className="relative inline-block">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-950 border-2 border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto shadow-2xl shadow-amber-950/50">
-              <Shield className="w-8 h-8 text-amber-400 fill-amber-400/20" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-coral to-red-600 border-2 border-brand-border flex items-center justify-center text-white mx-auto shadow-coral-lg">
+              <Scale className="w-8 h-8 text-white" />
             </div>
             <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-stone-950 flex items-center justify-center">
               <CheckCircle2 className="w-3 h-3 text-stone-950 font-bold" />
@@ -271,8 +271,8 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 mb-2">
-              <Lock className="w-3 h-3 text-amber-400" /> RESTRICTED JUDICIAL COMMAND
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-brand-coral/10 text-brand-coral border border-brand-coral/30 mb-2">
+              <Lock className="w-3 h-3 text-brand-coral" /> RESTRICTED JUDICIAL COMMAND
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Ukil Executive Console
@@ -313,7 +313,7 @@ export default function AdminLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="talha@pixheads.com"
-                  className="w-full bg-stone-950/80 border border-stone-800 rounded-xl pl-10 pr-3 py-2.5 text-sm font-mono text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/40 transition-colors"
+                  className="w-full bg-stone-950/80 border border-stone-800 rounded-xl pl-10 pr-3 py-2.5 text-sm font-mono text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-brand-coral focus:ring-1 focus:ring-brand-coral/40 transition-colors"
                   required
                 />
               </div>
@@ -333,7 +333,7 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-stone-950/80 border border-stone-800 rounded-xl pl-10 pr-3 py-2.5 text-sm font-mono text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/40 transition-colors"
+                  className="w-full bg-stone-950/80 border border-stone-800 rounded-xl pl-10 pr-3 py-2.5 text-sm font-mono text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-brand-coral focus:ring-1 focus:ring-brand-coral/40 transition-colors"
                   required
                 />
               </div>
@@ -342,7 +342,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 text-sm font-black py-3 rounded-xl shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+              className="w-full bg-gradient-to-r from-brand-coral to-brand-hover hover:brightness-110 text-white text-sm font-black py-3 rounded-xl shadow-coral transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
             >
               <span>{loading ? "Verifying Credentials & Clearance..." : "Authenticate Judicial Session"}</span>
               <ArrowRight className="w-4 h-4" />
@@ -362,13 +362,13 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 onClick={handleQuickLoginTalha}
-                className="w-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-between px-3.5 cursor-pointer shadow-xs"
+                className="w-full bg-gradient-to-r from-brand-coral/20 via-brand-coral/10 to-brand-coral/20 hover:bg-brand-coral/30 border border-brand-coral/40 text-brand-coral text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-between px-3.5 cursor-pointer shadow-xs"
               >
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  <span className="font-black text-amber-300">Talha (Super Admin)</span>
+                  <Shield className="w-4 h-4 text-brand-coral fill-brand-coral" />
+                  <span className="font-black text-white">Talha (Super Admin)</span>
                 </div>
-                <span className="text-[10px] font-mono text-amber-400/80 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
+                <span className="text-[10px] font-mono text-brand-coral bg-brand-coral/20 px-2 py-0.5 rounded border border-brand-coral/40">
                   Root Authority
                 </span>
               </button>
@@ -403,14 +403,14 @@ export default function AdminLoginPage() {
             </div>
 
             {/* Credentials Card */}
-            <div className="p-3 bg-stone-950/80 border border-amber-500/20 rounded-2xl text-left space-y-1.5 text-xs">
-              <div className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-amber-400" />
+            <div className="p-3 bg-stone-950/80 border border-brand-coral/30 rounded-2xl text-left space-y-1.5 text-xs">
+              <div className="text-[11px] font-bold text-brand-coral flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-brand-coral" />
                 <span>Your Super Admin Login Credentials:</span>
               </div>
               <div className="font-mono text-[11px] text-stone-300 space-y-0.5 bg-stone-900/60 p-2 rounded-xl border border-stone-800">
-                <div>Email: <span className="font-bold text-amber-300 select-all">talha@pixheads.com</span></div>
-                <div>Password: <span className="font-bold text-amber-300 select-all">Talha@2026</span></div>
+                <div>Email: <span className="font-bold text-brand-coral select-all">talha@pixheads.com</span></div>
+                <div>Password: <span className="font-bold text-brand-coral select-all">Talha@2026</span></div>
               </div>
             </div>
           </div>
