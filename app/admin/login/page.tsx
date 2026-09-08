@@ -35,7 +35,28 @@ export default function AdminLoginPage() {
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Direct check for Super Admin demo credentials
+    // 1. Direct check for Talha Super Admin credentials
+    if (cleanEmail === "talha@pixheads.com" && (password === "Talha@2026" || password === "super123" || password === "admin123")) {
+      setAdminSession({
+        email: "talha@pixheads.com",
+        name: "Talha (Super Admin)",
+        role: "super_admin",
+        isSuperAdmin: true,
+        permissions: {
+          manage_kyc: true,
+          manage_questions: true,
+          manage_answers: true,
+          manage_consultations: true,
+          manage_categories: true,
+          view_analytics: true,
+          manage_admins: true,
+        },
+      });
+      window.location.href = "/admin";
+      return;
+    }
+
+    // 2. Direct check for Super Admin demo credentials
     if (cleanEmail === "superadmin@ukil.com" && (password === "super123" || password === "admin123")) {
       setAdminSession({
         email: "superadmin@ukil.com",
@@ -206,6 +227,27 @@ export default function AdminLoginPage() {
     window.location.href = "/admin";
   };
 
+  const handleQuickLoginTalha = () => {
+    setEmail("talha@pixheads.com");
+    setPassword("Talha@2026");
+    setAdminSession({
+      email: "talha@pixheads.com",
+      name: "Talha (Super Admin)",
+      role: "super_admin",
+      isSuperAdmin: true,
+      permissions: {
+        manage_kyc: true,
+        manage_questions: true,
+        manage_answers: true,
+        manage_consultations: true,
+        manage_categories: true,
+        view_analytics: true,
+        manage_admins: true,
+      },
+    });
+    window.location.href = "/admin";
+  };
+
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-stone-50/50">
       <div className="max-w-md w-full space-y-8">
@@ -290,14 +332,23 @@ export default function AdminLoginPage() {
               </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={handleQuickLoginTalha}
+                className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-600 hover:to-amber-600 text-stone-950 font-black text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              >
+                <Shield className="w-4 h-4 text-stone-950 fill-stone-950" />
+                <span>👑 1-Click Login: talha@pixheads.com (Super Admin)</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleQuickDemoSuperAdmin}
                 className="w-full bg-stone-900 hover:bg-black text-amber-300 border border-amber-500/40 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
                 <Shield className="w-4 h-4 text-amber-400" />
-                <span>⚡ One-Click Super Admin Login (Root Authority)</span>
+                <span>⚡ One-Click Super Admin Login (superadmin@ukil.com)</span>
               </button>
 
               <button
@@ -306,13 +357,19 @@ export default function AdminLoginPage() {
                 className="w-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>⚡ One-Click Full Access Admin Login</span>
+                <span>⚡ One-Click Full Access Admin Login (admin@ukil.com)</span>
               </button>
             </div>
 
-            <div className="text-[10px] text-stone-400 text-center space-y-0.5">
-              <p>Super Admin: <span className="font-mono text-stone-600">superadmin@ukil.com</span> / <span className="font-mono text-stone-600">super123</span></p>
-              <p>Full Access Admin: <span className="font-mono text-stone-600">admin@ukil.com</span> / <span className="font-mono text-stone-600">admin123</span></p>
+            <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl text-left space-y-1.5 text-xs">
+              <div className="text-[11px] font-bold text-amber-950 flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-amber-700" />
+                <span>Configured Super Admin Credentials:</span>
+              </div>
+              <div className="font-mono text-[11px] text-stone-800 space-y-0.5">
+                <div>Email: <span className="font-bold text-stone-950">talha@pixheads.com</span></div>
+                <div>Password: <span className="font-bold text-stone-950">Talha@2026</span></div>
+              </div>
             </div>
           </div>
         </div>

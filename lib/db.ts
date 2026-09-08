@@ -173,7 +173,7 @@ export interface AdminPermissions {
   manage_admins: boolean;
 }
 
-export type AdminRole = 'super_admin' | 'admin' | 'moderator';
+export type AdminRole = 'super_admin' | 'admin' | 'moderator' | 'support';
 
 export interface AdminUser {
   id: string;
@@ -228,6 +228,26 @@ const DEFAULT_ADMIN_USERS: AdminUser[] = [
     department: 'Executive Judicial Authority',
     status: 'active',
     addedBy: 'Root System',
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'admin-super-03',
+    email: 'talha@pixheads.com',
+    name: 'Talha (Super Admin)',
+    role: 'super_admin',
+    isSuperAdmin: true,
+    permissions: {
+      manage_kyc: true,
+      manage_questions: true,
+      manage_answers: true,
+      manage_consultations: true,
+      manage_categories: true,
+      view_analytics: true,
+      manage_admins: true,
+    },
+    department: 'Executive Council & System Authority',
+    status: 'active',
+    addedBy: 'Platform Root',
     createdAt: '2026-01-01',
   },
   {

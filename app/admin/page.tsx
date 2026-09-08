@@ -60,13 +60,14 @@ export default function AdminDashboardPage() {
 
   // Admin Team Management State
   const [adminSearchQuery, setAdminSearchQuery] = useState("");
+  const [adminRoleFilter, setAdminRoleFilter] = useState<"all" | "super_admin" | "admin" | "moderator" | "support">("all");
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [editingAdminUser, setEditingAdminUser] = useState<AdminUser | null>(null);
   const [adminForm, setAdminForm] = useState({
     name: "",
     email: "",
     department: "Judicial Administration",
-    role: "admin" as "super_admin" | "admin" | "moderator",
+    role: "admin" as AdminRole,
     isSuperAdmin: false,
     permissions: {
       manage_kyc: true,
@@ -446,6 +447,21 @@ export default function AdminDashboardPage() {
   const canManageAdmins = Boolean(adminUser?.isSuperAdmin || adminUser?.permissions?.manage_admins);
 
   const filteredAdminUsers = adminUsers.filter((u) => {
+    // 1. Role filter separation
+    if (adminRoleFilter === "super_admin" && !u.isSuperAdmin && u.role !== "super_admin") {
+      return false;
+    }
+    if (adminRoleFilter === "admin" && (u.isSuperAdmin || !u.permissions?.manage_admins || u.role === "moderator" || u.role === "support")) {
+      return false;
+    }
+    if (adminRoleFilter === "moderator" && (u.isSuperAdmin || u.permissions?.manage_admins || u.role === "support")) {
+      return false;
+    }
+    if (adminRoleFilter === "support" && u.role !== "support") {
+      return false;
+    }
+
+    // 2. Search query filter
     if (!adminSearchQuery.trim()) return true;
     const q = adminSearchQuery.toLowerCase();
     return (
@@ -1450,51 +1466,136 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Metric Summary Cards */}
+          {/* Metric Summary Cards (Interactive Role Filters) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs">
-              <div className="text-[10px] font-bold text-stone-400 uppercase">Total Administrators</div>
+            <button
+              type="button"
+              onClick={() => setAdminRoleFilter("all")}
+              className={`text-left bg-white border rounded-2xl p-4 shadow-xs transition-all cursor-pointer ${
+                adminRoleFilter === "all"
+                  ? "border-stone-900 ring-2 ring-stone-900/10 bg-stone-50/50"
+                  : "border-stone-200 hover:border-stone-300"
+              }`}
+            >
+              <div className="text-[10px] font-bold text-stone-400 uppercase">All Administrators</div>
               <div className="text-2xl font-black text-stone-900">{adminUsers.length}</div>
-            </div>
+              <div className="text-[10px] text-stone-500 mt-0.5">Click to view all personnel</div>
+            </button>
 
-            <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs">
-              <div className="text-[10px] font-bold text-amber-600 uppercase flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setAdminRoleFilter("super_admin")}
+              className={`text-left bg-white border rounded-2xl p-4 shadow-xs transition-all cursor-pointer ${
+                adminRoleFilter === "super_admin"
+                  ? "border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/30"
+                  : "border-stone-200 hover:border-stone-300"
+              }`}
+            >
+              <div className="text-[10px] font-bold text-amber-700 uppercase flex items-center gap-1">
                 <Shield className="w-3 h-3 text-amber-500" /> Super Admins
               </div>
               <div className="text-2xl font-black text-amber-600">
                 {adminUsers.filter((u) => u.isSuperAdmin || u.role === "super_admin").length}
               </div>
-            </div>
+              <div className="text-[10px] text-amber-700 mt-0.5">Root system authority</div>
+            </button>
 
-            <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs">
-              <div className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setAdminRoleFilter("admin")}
+              className={`text-left bg-white border rounded-2xl p-4 shadow-xs transition-all cursor-pointer ${
+                adminRoleFilter === "admin"
+                  ? "border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/30"
+                  : "border-stone-200 hover:border-stone-300"
+              }`}
+            >
+              <div className="text-[10px] font-bold text-blue-700 uppercase flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-blue-500" /> Full Access Admins
               </div>
               <div className="text-2xl font-black text-blue-600">
                 {adminUsers.filter((u) => !u.isSuperAdmin && u.permissions.manage_admins).length}
               </div>
-            </div>
+              <div className="text-[10px] text-blue-700 mt-0.5">Can add & manage staff</div>
+            </button>
 
-            <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs">
+            <button
+              type="button"
+              onClick={() => setAdminRoleFilter("moderator")}
+              className={`text-left bg-white border rounded-2xl p-4 shadow-xs transition-all cursor-pointer ${
+                adminRoleFilter === "moderator"
+                  ? "border-stone-600 ring-2 ring-stone-600/20 bg-stone-50/50"
+                  : "border-stone-200 hover:border-stone-300"
+              }`}
+            >
               <div className="text-[10px] font-bold text-stone-500 uppercase flex items-center gap-1">
                 <Users className="w-3 h-3 text-stone-400" /> Scoped Moderators
               </div>
               <div className="text-2xl font-black text-stone-700">
-                {adminUsers.filter((u) => !u.permissions.manage_admins).length}
+                {adminUsers.filter((u) => !u.isSuperAdmin && !u.permissions.manage_admins).length}
               </div>
-            </div>
+              <div className="text-[10px] text-stone-500 mt-0.5">Specific control scopes</div>
+            </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative max-w-md">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-            <input
-              type="text"
-              value={adminSearchQuery}
-              onChange={(e) => setAdminSearchQuery(e.target.value)}
-              placeholder="Search by name, email, department, or role..."
-              className="w-full bg-white border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-stone-900 focus:outline-none focus:border-brand-coral shadow-xs"
-            />
+          {/* Filter Segmented Bar & Search Row */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 p-1 bg-stone-100 rounded-2xl border border-stone-200 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setAdminRoleFilter("all")}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  adminRoleFilter === "all"
+                    ? "bg-white text-stone-900 shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                All Personnel ({adminUsers.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminRoleFilter("super_admin")}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
+                  adminRoleFilter === "super_admin"
+                    ? "bg-amber-500 text-stone-950 shadow-xs"
+                    : "text-amber-800 hover:text-amber-950"
+                }`}
+              >
+                <span>⚡ Super Admins ({adminUsers.filter((u) => u.isSuperAdmin || u.role === "super_admin").length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminRoleFilter("admin")}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
+                  adminRoleFilter === "admin"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-blue-800 hover:text-blue-950"
+                }`}
+              >
+                <span>🛡️ Full Access ({adminUsers.filter((u) => !u.isSuperAdmin && u.permissions.manage_admins).length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminRoleFilter("moderator")}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
+                  adminRoleFilter === "moderator"
+                    ? "bg-stone-800 text-white shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                <span>⚖️ Moderators ({adminUsers.filter((u) => !u.isSuperAdmin && !u.permissions.manage_admins).length})</span>
+              </button>
+            </div>
+
+            <div className="relative max-w-xs sm:w-72">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+              <input
+                type="text"
+                value={adminSearchQuery}
+                onChange={(e) => setAdminSearchQuery(e.target.value)}
+                placeholder="Search by name, email, department..."
+                className="w-full bg-white border border-stone-200 rounded-xl pl-10 pr-4 py-2 text-xs text-stone-900 focus:outline-none focus:border-stone-900 shadow-xs"
+              />
+            </div>
           </div>
 
           {/* Administrators Table */}
@@ -1506,7 +1607,7 @@ export default function AdminDashboardPage() {
                     <th className="px-6 py-4">Administrator</th>
                     <th className="px-6 py-4">Authority & Role</th>
                     <th className="px-6 py-4">Department</th>
-                    <th className="px-6 py-4">Permissions & Controls</th>
+                    <th className="px-6 py-4">Access Controls & Permissions</th>
                     <th className="px-6 py-4">Added By</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
@@ -1521,7 +1622,7 @@ export default function AdminDashboardPage() {
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-xs ${
                               isTargetSuperAdmin
-                                ? "bg-amber-100 text-amber-900 border border-amber-300"
+                                ? "bg-gradient-to-br from-amber-400 to-amber-500 text-stone-950 font-black border border-amber-300"
                                 : admin.permissions.manage_admins
                                 ? "bg-blue-100 text-blue-900 border border-blue-200"
                                 : "bg-stone-100 text-stone-700 border border-stone-200"
@@ -1532,8 +1633,8 @@ export default function AdminDashboardPage() {
                               <div className="font-bold text-stone-900 flex items-center gap-1.5">
                                 <span>{admin.name}</span>
                                 {admin.email === adminUser?.email && (
-                                  <span className="bg-stone-100 text-stone-600 text-[9px] font-bold px-1.5 py-0.2 rounded">
-                                    You
+                                  <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[9px] font-black px-1.5 py-0.2 rounded">
+                                    Current Session
                                   </span>
                                 )}
                               </div>
@@ -1544,64 +1645,130 @@ export default function AdminDashboardPage() {
 
                         <td className="px-6 py-4">
                           {isTargetSuperAdmin ? (
-                            <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">
-                              <Shield className="w-3 h-3 text-amber-600" />
-                              <span>Super Admin (Root)</span>
-                            </span>
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-950 border border-amber-300 font-black text-[11px] px-2.5 py-1 rounded-lg shadow-2xs">
+                                <Shield className="w-3.5 h-3.5 text-amber-700 fill-amber-700" />
+                                <span>Super Admin</span>
+                              </span>
+                              <div className="text-[10px] text-amber-800 font-semibold pl-0.5">
+                                👑 Root Authority • Non-Removable
+                              </div>
+                            </div>
                           ) : admin.permissions.manage_admins ? (
-                            <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-800 border border-blue-200 font-bold text-[11px] px-2.5 py-1 rounded-lg">
-                              <CheckCircle2 className="w-3 h-3 text-blue-600" />
-                              <span>Full Access Admin</span>
-                            </span>
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-800 border border-blue-200 font-bold text-[11px] px-2.5 py-1 rounded-lg">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                <span>Full Access Admin</span>
+                              </span>
+                              <div className="text-[10px] text-blue-700 pl-0.5">
+                                Can Provision & Manage Staff
+                              </div>
+                            </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1 bg-stone-100 text-stone-700 border border-stone-200 font-semibold text-[11px] px-2.5 py-1 rounded-lg">
-                              <span>Scoped Moderator</span>
-                            </span>
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 bg-stone-100 text-stone-700 border border-stone-200 font-semibold text-[11px] px-2.5 py-1 rounded-lg">
+                                <span>Scoped Moderator</span>
+                              </span>
+                              <div className="text-[10px] text-stone-400 pl-0.5">
+                                Scoped Controls
+                              </div>
+                            </div>
                           )}
                         </td>
 
                         <td className="px-6 py-4 text-stone-700 font-medium">
-                          {admin.department || "General Administration"}
+                          {admin.department || "Platform Administration"}
                         </td>
 
                         <td className="px-6 py-4">
-                          <div className="flex flex-wrap gap-1 max-w-xs">
-                            {admin.permissions.manage_kyc && (
-                              <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold px-2 py-0.5 rounded">
-                                KYC
-                              </span>
-                            )}
-                            {admin.permissions.manage_questions && (
-                              <span className="bg-stone-100 text-stone-700 text-[10px] font-semibold px-2 py-0.5 rounded">
-                                Queries
-                              </span>
-                            )}
-                            {admin.permissions.manage_answers && (
-                              <span className="bg-stone-100 text-stone-700 text-[10px] font-semibold px-2 py-0.5 rounded">
-                                Advice
-                              </span>
-                            )}
-                            {admin.permissions.manage_consultations && (
-                              <span className="bg-stone-100 text-stone-700 text-[10px] font-semibold px-2 py-0.5 rounded">
-                                Consults
-                              </span>
-                            )}
-                            {admin.permissions.manage_categories && (
-                              <span className="bg-stone-100 text-stone-700 text-[10px] font-semibold px-2 py-0.5 rounded">
-                                Topics
-                              </span>
-                            )}
-                            {admin.permissions.view_analytics && (
-                              <span className="bg-stone-100 text-stone-700 text-[10px] font-semibold px-2 py-0.5 rounded">
-                                Stats
-                              </span>
-                            )}
-                            {admin.permissions.manage_admins && (
-                              <span className="bg-indigo-50 text-indigo-800 border border-indigo-200 text-[10px] font-bold px-2 py-0.5 rounded">
-                                Manage Admins
-                              </span>
-                            )}
-                          </div>
+                          {isTargetSuperAdmin ? (
+                            <div className="space-y-1 max-w-sm">
+                              <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-black px-2 py-0.5 rounded-md">
+                                <span>⚡ Unrestricted: All 7 Operational Modules Active</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1 text-[10px]">
+                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-1.5 py-0.5 rounded">✓ KYC & NID</span>
+                                <span className="bg-indigo-50 text-indigo-800 border border-indigo-200 font-bold px-1.5 py-0.5 rounded">✓ Admin Provisioning</span>
+                                <span className="bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded font-medium">✓ Questions</span>
+                                <span className="bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded font-medium">✓ Legal Advice</span>
+                                <span className="bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded font-medium">✓ Consultations</span>
+                                <span className="bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded font-medium">✓ Categories</span>
+                                <span className="bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded font-medium">✓ Analytics</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-1 max-w-sm text-[10px]">
+                              {admin.permissions.manage_kyc ? (
+                                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-1.5 py-0.5 rounded">
+                                  ✓ KYC & NID
+                                </span>
+                              ) : (
+                                <span className="opacity-35 line-through bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded">
+                                  ✕ KYC
+                                </span>
+                              )}
+
+                              {admin.permissions.manage_admins ? (
+                                <span className="bg-indigo-50 text-indigo-800 border border-indigo-200 font-bold px-1.5 py-0.5 rounded">
+                                  ✓ Admin Provisioning
+                                </span>
+                              ) : (
+                                <span className="opacity-35 line-through bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded">
+                                  ✕ Admin Provisioning
+                                </span>
+                              )}
+
+                              {admin.permissions.manage_questions ? (
+                                <span className="bg-stone-100 text-stone-800 border border-stone-200 font-medium px-1.5 py-0.5 rounded">
+                                  ✓ Questions
+                                </span>
+                              ) : (
+                                <span className="opacity-35 line-through bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded">
+                                  ✕ Questions
+                                </span>
+                              )}
+
+                              {admin.permissions.manage_answers ? (
+                                <span className="bg-stone-100 text-stone-800 border border-stone-200 font-medium px-1.5 py-0.5 rounded">
+                                  ✓ Advice
+                                </span>
+                              ) : (
+                                <span className="opacity-35 line-through bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded">
+                                  ✕ Advice
+                                </span>
+                              )}
+
+                              {admin.permissions.manage_consultations ? (
+                                <span className="bg-stone-100 text-stone-800 border border-stone-200 font-medium px-1.5 py-0.5 rounded">
+                                  ✓ Consults
+                                </span>
+                              ) : (
+                                <span className="opacity-35 line-through bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded">
+                                  ✕ Consults
+                                </span>
+                              )}
+
+                              {admin.permissions.manage_categories ? (
+                                <span className="bg-stone-100 text-stone-800 border border-stone-200 font-medium px-1.5 py-0.5 rounded">
+                                  ✓ Topics
+                                </span>
+                              ) : (
+                                <span className="opacity-35 line-through bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded">
+                                  ✕ Topics
+                                </span>
+                              )}
+
+                              {admin.permissions.view_analytics ? (
+                                <span className="bg-stone-100 text-stone-800 border border-stone-200 font-medium px-1.5 py-0.5 rounded">
+                                  ✓ Analytics
+                                </span>
+                              ) : (
+                                <span className="opacity-35 line-through bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded">
+                                  ✕ Analytics
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </td>
 
                         <td className="px-6 py-4 text-stone-500 text-[11px]">

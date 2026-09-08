@@ -130,6 +130,48 @@ export type Database = {
           },
         ]
       }
+      admin_users: {
+        Row: {
+          id: string
+          email: string
+          name: string
+          role: string
+          is_super_admin: boolean
+          permissions: Json
+          department: string | null
+          status: string
+          added_by: string | null
+          created_at: string | null
+          last_login: string | null
+        }
+        Insert: {
+          id?: string
+          email: string
+          name: string
+          role?: string
+          is_super_admin?: boolean
+          permissions?: Json
+          department?: string | null
+          status?: string
+          added_by?: string | null
+          created_at?: string | null
+          last_login?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string
+          role?: string
+          is_super_admin?: boolean
+          permissions?: Json
+          department?: string | null
+          status?: string
+          added_by?: string | null
+          created_at?: string | null
+          last_login?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
