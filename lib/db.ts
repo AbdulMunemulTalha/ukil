@@ -15,7 +15,7 @@ export interface ConsultationRequest {
   clientEmail?: string;
   preferredDate: string;
   notes: string;
-  status: 'pending' | 'confirmed' | 'completed';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   createdAt: string;
 }
 
@@ -143,12 +143,31 @@ export function saveStoredPlatformStats(stats: PlatformStats) {
   } catch (e) {}
 }
 
+const LOCAL_STORAGE_KEY_CATEGORIES = 'ukil_categories_data_v2';
+
+export function getStoredCategories(): Category[] {
+  if (typeof window === 'undefined') return MOCK_CATEGORIES;
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_CATEGORIES);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {}
+  return MOCK_CATEGORIES;
+}
+
+export function saveStoredCategories(categories: Category[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+  } catch (e) {}
+}
 
 // Data Access Service (Hybrid: Live Supabase with LocalStorage offline/caching)
 export const DataService = {
   // Get all categories
   getCategories(): Category[] {
-    return MOCK_CATEGORIES;
+    return getStoredCategories();
   },
 
   // Get all questions
@@ -208,6 +227,7 @@ export const DataService = {
             professionalRole: prof?.role === 'professional' ? 'Verified Advocate' : 'Legal Advisor',
             professionalAvatar: prof?.avatar_url || getDefaultAvatar(prof?.full_name),
             barLicenseNo: prof?.bar_license_no || '',
+            hideBarLicense: Boolean(prof?.hide_bar_license),
             content: a.content,
             createdAt: a.created_at ? new Date(a.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recently',
             upvotes: a.upvotes || 0,
@@ -254,11 +274,17 @@ export const DataService = {
           rating: p.rating ? Number(p.rating) : 5.0,
           reviewCount: p.review_count || 0,
           barLicenseNo: p.bar_license_no || '',
+          hideBarLicense: Boolean(p.hide_bar_license),
+          phone: p.phone || '',
+          email: p.email || '',
+          nidNumber: p.nid_number || '',
           hourlyFee: p.hourly_fee || '',
           avatar: p.avatar_url || getDefaultAvatar(p.full_name),
           bio: p.bio || '',
           answersCount: 0,
-          verified: p.is_verified ?? true,
+          verified: p.is_verified ?? false,
+          kycStatus: (p.kyc_status as any) || (p.is_verified ? 'verified' : 'pending'),
+          kycData: (p.kyc_data as any) || undefined,
         }));
         saveStoredProfessionals(mappedProfs);
       }
@@ -403,6 +429,11 @@ export const DataService = {
     return newCount;
   },
 
+  // Get all answers
+  getAnswers(): Answer[] {
+    return getStoredAnswers();
+  },
+
   // Get answers for question (by ID or tracking code)
   getAnswersForQuestion(questionId: string): Answer[] {
     const answers = getStoredAnswers();
@@ -476,6 +507,7 @@ export const DataService = {
               professionalRole: prof?.role === 'professional' ? 'Verified Advocate' : 'Legal Advisor',
               professionalAvatar: prof?.avatar_url || getDefaultAvatar(prof?.full_name),
               barLicenseNo: prof?.bar_license_no || '',
+              hideBarLicense: Boolean(prof?.hide_bar_license),
               content: a.content,
               createdAt: a.created_at ? new Date(a.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recently',
               upvotes: a.upvotes || 0,
@@ -505,6 +537,7 @@ export const DataService = {
     professionalRole: string;
     professionalAvatar: string;
     barLicenseNo: string;
+    hideBarLicense?: boolean;
     content: string;
   }): Answer {
     const answers = getStoredAnswers();
@@ -649,6 +682,65 @@ export const DataService = {
   getProfessionalById(id: string): Professional | undefined {
     const profs = getStoredProfessionals();
     return profs.find((p) => p.id === id) || profs[0];
+  },
+
+  // Update lawyer profile locally and sync to cache
+  updateProfessionalProfile(id: string, updates: Partial<Professional>): Professional | null {
+    const profs = getStoredProfessionals();
+    let updatedProf: Professional | null = null;
+    const updatedList = profs.map((p) => {
+      if (p.id === id) {
+        updatedProf = { ...p, ...updates };
+        return updatedProf;
+      }
+      return p;
+    });
+    if (updatedProf) {
+      saveStoredProfessionals(updatedList);
+    }
+    return updatedProf;
+  },
+
+  // Submit KYC verification
+  submitKycVerification(id: string, kycData: any, autoApprove: boolean = true) {
+    const profs = getStoredProfessionals();
+    const updated = profs.map((p) => {
+      if (p.id === id) {
+        return {
+          ...p,
+          verified: autoApprove ? true : p.verified,
+          kycStatus: autoApprove ? ('verified' as const) : ('in_review' as const),
+          barLicenseNo: kycData.barRollNo || p.barLicenseNo,
+          nidNumber: kycData.nidNumber || p.nidNumber,
+          kycData: {
+            ...p.kycData,
+            ...kycData,
+            submittedAt: new Date().toISOString(),
+          },
+        };
+      }
+      return p;
+    });
+    saveStoredProfessionals(updated);
+
+    const supabase = createClient();
+    if (supabase) {
+      const updatePayload: any = {
+        kyc_status: autoApprove ? 'verified' : 'in_review',
+        is_verified: autoApprove,
+        nid_number: kycData.nidNumber || null,
+        kyc_data: {
+          ...kycData,
+          submitted_at: new Date().toISOString(),
+        },
+      };
+      if (kycData.barRollNo) {
+        updatePayload.bar_license_no = kycData.barRollNo;
+      }
+      if (id.length > 30) {
+        supabase.from('profiles').update(updatePayload).eq('id', id).then(() => {});
+      }
+    }
   },
 
   // Consultation booking
@@ -821,6 +913,266 @@ export const DataService = {
       console.warn('Error fetching live platform stats from Supabase:', err);
       return this.getPlatformStats();
     }
+  },
+
+  // ==========================================
+  // ADMIN DASHBOARD METHODS
+  // ==========================================
+
+  // Admin: Get all professionals (including unverified & in_review)
+  getAllProfessionalsAdmin(): Professional[] {
+    return getStoredProfessionals();
+  },
+
+  // Admin: Update Lawyer KYC Verification Status
+  adminUpdateKycStatus(
+    id: string,
+    status: 'verified' | 'in_review' | 'pending',
+    isVerified: boolean,
+    rejectionReason?: string
+  ): Professional | null {
+    const profs = getStoredProfessionals();
+    let updatedProf: Professional | null = null;
+    const updated = profs.map((p) => {
+      if (p.id === id) {
+        updatedProf = {
+          ...p,
+          verified: isVerified,
+          kycStatus: status,
+          kycData: {
+            ...p.kycData,
+            rejectionReason: rejectionReason || undefined,
+          },
+        };
+        return updatedProf;
+      }
+      return p;
+    });
+    saveStoredProfessionals(updated);
+
+    const supabase = createClient();
+    if (supabase) {
+      const updateData: any = {
+        kyc_status: status,
+        is_verified: isVerified,
+      };
+      if (rejectionReason) {
+        updateData.kyc_data = {
+          rejection_reason: rejectionReason,
+          reviewed_at: new Date().toISOString(),
+        };
+      }
+      if (id.length > 30) {
+        supabase.from('profiles').update(updateData).eq('id', id).then(() => {
+          this.getPlatformStatsAsync();
+        });
+      }
+    }
+
+    return updatedProf;
+  },
+
+  // Admin: Delete question and cascade delete answers
+  adminDeleteQuestion(id: string): void {
+    const questions = getStoredQuestions();
+    const updatedQ = questions.filter((q) => q.id !== id);
+    saveStoredQuestions(updatedQ);
+
+    const answers = getStoredAnswers();
+    const updatedA = answers.filter((a) => a.questionId !== id);
+    saveStoredAnswers(updatedA);
+
+    const supabase = createClient();
+    if (supabase && id.length > 30) {
+      supabase.from('questions').delete().eq('id', id).then(() => {
+        this.getPlatformStatsAsync();
+      });
+    }
+  },
+
+  // Admin: Update question (status, urgency, title, category)
+  adminUpdateQuestion(id: string, updates: Partial<Question>): Question | null {
+    const questions = getStoredQuestions();
+    let updatedQuestion: Question | null = null;
+    const updated = questions.map((q) => {
+      if (q.id === id) {
+        updatedQuestion = { ...q, ...updates };
+        return updatedQuestion;
+      }
+      return q;
+    });
+    saveStoredQuestions(updated);
+
+    const supabase = createClient();
+    if (supabase && id.length > 30) {
+      const sbUpdates: any = {};
+      if (updates.status) sbUpdates.status = updates.status;
+      if (updates.urgency) sbUpdates.urgency = updates.urgency;
+      if (updates.title) sbUpdates.title = updates.title;
+      if (updates.categorySlug) sbUpdates.category_slug = updates.categorySlug;
+
+      supabase.from('questions').update(sbUpdates).eq('id', id).then(() => {
+        this.getPlatformStatsAsync();
+      });
+    }
+
+    return updatedQuestion;
+  },
+
+  // Admin: Delete answer
+  adminDeleteAnswer(id: string): void {
+    const answers = getStoredAnswers();
+    const target = answers.find((a) => a.id === id);
+    const updated = answers.filter((a) => a.id !== id);
+    saveStoredAnswers(updated);
+
+    if (target) {
+      const questions = getStoredQuestions();
+      const updatedQuestions = questions.map((q) => {
+        if (q.id === target.questionId) {
+          const newCount = Math.max(0, q.answersCount - 1);
+          return {
+            ...q,
+            answersCount: newCount,
+            status: newCount === 0 ? ('awaiting_advice' as const) : q.status,
+          };
+        }
+        return q;
+      });
+      saveStoredQuestions(updatedQuestions);
+    }
+
+    const supabase = createClient();
+    if (supabase && id.length > 30) {
+      supabase.from('answers').delete().eq('id', id).then(() => {
+        this.getPlatformStatsAsync();
+      });
+    }
+  },
+
+  // Admin: Toggle answer accepted solution status
+  adminToggleAnswerAccepted(answerId: string): boolean {
+    const answers = getStoredAnswers();
+    let isAcceptedNow = false;
+    let targetQId = '';
+    const updated = answers.map((a) => {
+      if (a.id === answerId) {
+        isAcceptedNow = !a.isAccepted;
+        targetQId = a.questionId;
+        return { ...a, isAccepted: isAcceptedNow };
+      }
+      return a;
+    });
+    saveStoredAnswers(updated);
+
+    if (targetQId) {
+      const questions = getStoredQuestions();
+      const updatedQuestions = questions.map((q) => {
+        if (q.id === targetQId) {
+          return {
+            ...q,
+            status: isAcceptedNow ? ('resolved' as const) : q.status,
+          };
+        }
+        return q;
+      });
+      saveStoredQuestions(updatedQuestions);
+    }
+
+    const supabase = createClient();
+    if (supabase && answerId.length > 30) {
+      supabase.from('answers').update({ is_accepted: isAcceptedNow }).eq('id', answerId).then(() => {
+        this.getPlatformStatsAsync();
+      });
+    }
+
+    return isAcceptedNow;
+  },
+
+  // Admin: Update consultation booking status
+  adminUpdateConsultationStatus(id: string, status: ConsultationRequest['status']): void {
+    const list = getStoredConsultations();
+    const updated = list.map((c) => (c.id === id ? { ...c, status } : c));
+    saveStoredConsultations(updated);
+
+    const supabase = createClient();
+    if (supabase && id.length > 30) {
+      supabase.from('consultation_requests').update({ status }).eq('id', id).then(() => {});
+    }
+  },
+
+  // Admin: Category management
+  adminAddCategory(category: Category): void {
+    const categories = this.getCategories();
+    if (categories.some((c) => c.slug === category.slug)) return;
+    const updated = [...categories, category];
+    saveStoredCategories(updated);
+
+    const supabase = createClient();
+    if (supabase) {
+      supabase.from('categories').insert({
+        name: category.name,
+        slug: category.slug,
+        icon: category.icon,
+        description: category.description,
+        color: category.color,
+      }).then(() => {});
+    }
+  },
+
+  adminUpdateCategory(category: Category): void {
+    const categories = this.getCategories();
+    const updated = categories.map((c) => (c.slug === category.slug ? category : c));
+    saveStoredCategories(updated);
+
+    const supabase = createClient();
+    if (supabase) {
+      supabase.from('categories').update({
+        name: category.name,
+        icon: category.icon,
+        description: category.description,
+        color: category.color,
+      }).eq('slug', category.slug).then(() => {});
+    }
+  },
+
+  adminDeleteCategory(slug: string): void {
+    const categories = this.getCategories();
+    const updated = categories.filter((c) => c.slug !== slug);
+    saveStoredCategories(updated);
+
+    const supabase = createClient();
+    if (supabase) {
+      supabase.from('categories').delete().eq('slug', slug).then(() => {});
+    }
+  },
+
+  // Admin: Comprehensive platform health metrics
+  adminGetMetrics() {
+    const questions = getStoredQuestions();
+    const answers = getStoredAnswers();
+    const profs = getStoredProfessionals();
+    const consultations = getStoredConsultations();
+
+    const pendingKyc = profs.filter(
+      (p) => p.kycStatus === 'in_review' || (p.kycStatus === 'pending' && !p.verified)
+    ).length;
+    const verifiedProfs = profs.filter((p) => p.verified === true).length;
+    const resolvedQuestions = questions.filter((q) => q.status === 'resolved').length;
+    const awaitingQuestions = questions.filter((q) => q.status === 'awaiting_advice').length;
+
+    return {
+      totalQuestions: questions.length,
+      resolvedQuestions,
+      awaitingQuestions,
+      totalAnswers: answers.length,
+      acceptedAnswers: answers.filter((a) => a.isAccepted).length,
+      totalLawyers: profs.length,
+      verifiedLawyers: verifiedProfs,
+      pendingKycLawyers: pendingKyc,
+      totalConsultations: consultations.length,
+      pendingConsultations: consultations.filter((c) => c.status === 'pending').length,
+    };
   },
 };
 

@@ -7,6 +7,7 @@ import { Question, Answer, Professional } from "../../../lib/mockData";
 import { DataService } from "../../../lib/db";
 import { createClient } from "../../../lib/supabase/client";
 import { getDefaultAvatar } from "../../../lib/avatar";
+import KycRequiredModal from "../../../components/KycRequiredModal";
 
 export default function QuestionDetailPage({ params }: { params: { id: string } }) {
   const initialQ = DataService.getQuestionByIdOrCode(params.id) || null;
@@ -18,7 +19,16 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
   const [isLawyerSubmitting, setIsLawyerSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [adviceSuccess, setAdviceSuccess] = useState(false);
-  const [currentLawyer, setCurrentLawyer] = useState<{ id: string; name: string; license: string; role: string; avatar?: string } | null>(null);
+  const [showKycModal, setShowKycModal] = useState(false);
+  const [currentLawyer, setCurrentLawyer] = useState<{
+    id: string;
+    name: string;
+    license: string;
+    role: string;
+    avatar?: string;
+    isVerified: boolean;
+    hideBarLicense: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#advice") {
@@ -74,12 +84,19 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
             .single();
 
           if (prof) {
+            const localProfs = DataService.getProfessionals();
+            const localMatch = localProfs.find((p) => p.id === prof.id || p.id === user.id);
+            const isVerifiedAdvocate = prof.is_verified === true || prof.kyc_status === "verified" || localMatch?.verified === true;
+            const isHidden = prof.hide_bar_license === true || localMatch?.hideBarLicense === true;
+
             setCurrentLawyer({
               id: prof.id,
               name: prof.full_name,
               license: prof.bar_license_no || "VERIFIED-BAR",
               role: prof.role === "professional" ? "Verified Advocate" : "Legal Advisor",
               avatar: prof.avatar_url || getDefaultAvatar(prof.full_name),
+              isVerified: isVerifiedAdvocate,
+              hideBarLicense: isHidden,
             });
             setSelectedProfId(prof.id);
           }
@@ -103,6 +120,11 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
     e.preventDefault();
     if (!newAdviceText.trim() || submitting || !currentLawyer) return;
 
+    if (!currentLawyer.isVerified) {
+      setShowKycModal(true);
+      return;
+    }
+
     setSubmitting(true);
 
     DataService.addAnswer({
@@ -112,6 +134,7 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
       professionalRole: currentLawyer.role,
       professionalAvatar: currentLawyer.avatar || getDefaultAvatar(currentLawyer.name),
       barLicenseNo: currentLawyer.license,
+      hideBarLicense: currentLawyer.hideBarLicense,
       content: newAdviceText,
     });
 
@@ -148,55 +171,47 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
 
       {/* Main Question Card */}
       <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-        
-        {/* Category & Urgency Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Header Metadata */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-4">
           <div className="flex items-center gap-2">
-            <span className="bg-brand-light text-brand-coral border border-brand-border text-xs font-bold px-3 py-1 rounded-full uppercase">
+            <span className="bg-brand-light text-brand-coral border border-brand-border text-xs font-bold px-3 py-1 rounded-md uppercase">
               {question.categoryName}
             </span>
-            <span className="bg-red-100 text-red-700 border border-red-200 text-xs font-semibold px-3 py-1 rounded-full uppercase">
-              Urgency: {question.urgency}
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-stone-100 text-stone-700">
+              Tracking: {question.trackingCode}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 font-mono text-xs text-stone-500 bg-stone-100 px-3 py-1 rounded-lg">
-            <Key className="w-3.5 h-3.5 text-stone-400" />
-            <span>Code: {question.trackingCode}</span>
+          <div className="flex items-center gap-3 text-xs text-stone-500 font-medium">
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {question.createdAt}</span>
+            <span>•</span>
+            <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {question.location}</span>
           </div>
         </div>
 
-        {/* Issue Title */}
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 leading-snug">
+        {/* Title */}
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight leading-tight">
           {question.title}
         </h1>
 
-        {/* Author Metadata */}
-        <div className="flex flex-wrap items-center gap-4 text-xs text-stone-500 pt-2 border-t border-stone-100">
-          <div className="flex items-center gap-1 font-semibold text-stone-700">
+        {/* Description Body */}
+        <div className="bg-stone-50 p-5 sm:p-6 rounded-2xl border border-stone-200 text-stone-800 text-sm sm:text-base leading-relaxed whitespace-pre-line">
+          {question.description}
+        </div>
+
+        {/* Footer Identity */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+          <div className="flex items-center gap-2 text-xs text-stone-600 font-medium">
             {question.isAnonymous ? (
-              <span className="inline-flex items-center gap-1 bg-stone-100 text-stone-700 px-2.5 py-1 rounded">
-                <UserX className="w-3.5 h-3.5 text-stone-500" /> Anonymous Citizen
+              <span className="inline-flex items-center gap-1 bg-stone-100 text-stone-700 px-3 py-1.5 rounded-xl font-semibold">
+                <UserX className="w-4 h-4 text-stone-500" /> Anonymous Citizen Query
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 bg-brand-light text-brand-coral px-2.5 py-1 rounded border border-brand-border">
-                <UserCheck className="w-3.5 h-3.5" /> Posted by {question.authorName}
+              <span className="inline-flex items-center gap-1 bg-brand-light text-brand-coral px-3 py-1.5 rounded-xl font-semibold border border-brand-border">
+                <UserCheck className="w-4 h-4" /> Posted by {question.authorName}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            <span>{question.createdAt}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5" />
-            <span>{question.location}</span>
-          </div>
-        </div>
-
-        {/* Detailed Story */}
-        <div className="prose prose-stone max-w-none text-stone-800 leading-relaxed bg-stone-50 p-5 rounded-2xl border border-stone-200">
-          <p className="whitespace-pre-line text-sm sm:text-base">{question.description}</p>
         </div>
       </div>
 
@@ -209,8 +224,14 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
           </h2>
 
           <button
-            onClick={() => setIsLawyerSubmitting(!isLawyerSubmitting)}
-            className="text-xs font-bold bg-brand-light text-brand-coral hover:bg-brand-coral hover:text-white px-3.5 py-2 rounded-xl border border-brand-border transition-colors shadow-2xs"
+            onClick={() => {
+              if (currentLawyer && !currentLawyer.isVerified) {
+                setShowKycModal(true);
+                return;
+              }
+              setIsLawyerSubmitting(!isLawyerSubmitting);
+            }}
+            className="text-xs font-bold bg-brand-light text-brand-coral hover:bg-brand-coral hover:text-white px-3.5 py-2 rounded-xl border border-brand-border transition-colors shadow-2xs cursor-pointer"
           >
             {isLawyerSubmitting ? "Close Form" : "+ Provide Lawyer Advice"}
           </button>
@@ -319,8 +340,14 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
               Verified advocates receive public queries here. If you are an advocate or tax consultant, you can provide official advice.
             </p>
             <button
-              onClick={() => setIsLawyerSubmitting(true)}
-              className="inline-flex items-center gap-1 text-xs font-bold bg-brand-coral text-white px-4 py-2 rounded-xl shadow-coral hover:bg-brand-hover transition-colors"
+              onClick={() => {
+                if (currentLawyer && !currentLawyer.isVerified) {
+                  setShowKycModal(true);
+                  return;
+                }
+                setIsLawyerSubmitting(true);
+              }}
+              className="inline-flex items-center gap-1 text-xs font-bold bg-brand-coral text-white px-4 py-2 rounded-xl shadow-coral hover:bg-brand-hover transition-colors cursor-pointer"
             >
               + Write Verified Advice Now
             </button>
@@ -343,7 +370,9 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
                       <ShieldCheck className="w-4 h-4 text-emerald-600 fill-emerald-100" />
                     </div>
                     <div className="text-xs text-brand-coral font-semibold">{answer.professionalRole}</div>
-                    <div className="text-[11px] text-stone-500">License: {answer.barLicenseNo}</div>
+                    <div className="text-[11px] text-stone-500">
+                      License: {answer.hideBarLicense ? "Verified on file" : (answer.barLicenseNo || "Verified")}
+                    </div>
                   </div>
                 </div>
 
@@ -385,6 +414,12 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
           ))
         )}
       </div>
+
+      {/* KYC Verification Gate Modal */}
+      <KycRequiredModal
+        isOpen={showKycModal}
+        onClose={() => setShowKycModal(false)}
+      />
     </div>
   );
 }

@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Scale, ShieldCheck, Mail, Lock, User, Award, CheckCircle2, AlertCircle } from "lucide-react";
+import { Scale, ShieldCheck, Mail, Lock, User, Phone, CheckCircle2, AlertCircle } from "lucide-react";
 import { MOCK_CATEGORIES } from "../../../lib/mockData";
 import { createClient } from "../../../lib/supabase/client";
 import { getDefaultAvatar } from "../../../lib/avatar";
+import { DataService } from "../../../lib/db";
 
 export default function LawyerSignupPage() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function LawyerSignupPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [barLicenseNo, setBarLicenseNo] = useState("");
+  const [phone, setPhone] = useState("");
   const [selectedSpecs, setSelectedSpecs] = useState<string[]>([
     "Anti-Corruption & Bribes",
     "Property & Land Law",
@@ -44,8 +45,8 @@ export default function LawyerSignupPage() {
       return;
     }
 
-    if (!barLicenseNo.trim()) {
-      setErrorMsg("Please enter your Bar Council License or Registration Number.");
+    if (!phone.trim()) {
+      setErrorMsg("Phone number is mandatory. Please enter your contact number.");
       setLoading(false);
       return;
     }
@@ -61,7 +62,7 @@ export default function LawyerSignupPage() {
           data: {
             full_name: fullName,
             role: "professional",
-            bar_license_no: barLicenseNo.trim(),
+            phone: phone.trim(),
           },
         },
       });
@@ -72,7 +73,7 @@ export default function LawyerSignupPage() {
         return;
       }
 
-      // 2. Insert Profile with only registered fields
+      // 2. Insert Profile with only registered fields (Bar license will be added during profile setup tour)
       if (data.user) {
         const defaultAvatar = getDefaultAvatar(fullName);
 
@@ -81,14 +82,36 @@ export default function LawyerSignupPage() {
           role: "professional",
           full_name: fullName,
           email: email.trim(),
-          bar_license_no: barLicenseNo.trim(),
+          phone: phone.trim(),
+          bar_license_no: "",
+          hide_bar_license: false,
           specializations: selectedSpecs,
-          phone: "",
           location: "",
           hourly_fee: "",
           bio: "",
           avatar_url: defaultAvatar,
-          is_verified: true,
+          is_verified: false,
+          kyc_status: "pending",
+        });
+
+        // Initialize in local cache as well
+        DataService.updateProfessionalProfile(data.user.id, {
+          id: data.user.id,
+          name: fullName,
+          role: "Verified Legal Advocate",
+          specialization: selectedSpecs,
+          location: "",
+          rating: 5.0,
+          reviewCount: 0,
+          barLicenseNo: "",
+          hideBarLicense: false,
+          phone: phone.trim(),
+          hourlyFee: "",
+          avatar: defaultAvatar,
+          bio: "",
+          answersCount: 0,
+          verified: false,
+          kycStatus: "pending",
         });
       }
     }
@@ -96,8 +119,8 @@ export default function LawyerSignupPage() {
     setLoading(false);
     setSuccessMsg(true);
     setTimeout(() => {
-      router.push("/dashboard");
-    }, 2000);
+      router.push("/dashboard?tour=true");
+    }, 1500);
   };
 
   return (
@@ -212,24 +235,29 @@ export default function LawyerSignupPage() {
             </div>
           </div>
 
-          {/* Bar License / Registration No. */}
+          {/* Phone Number (Mandatory) */}
           <div>
-            <label className="text-xs font-bold text-stone-800 uppercase tracking-wider block mb-1">
-              Bar License / Registration No.
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-stone-800 uppercase tracking-wider block">
+                Direct Contact Phone Number <span className="text-brand-coral">* (Mandatory)</span>
+              </label>
+              <span className="text-[10px] bg-brand-light text-brand-coral font-bold px-2 py-0.5 rounded-md border border-brand-border">
+                Required
+              </span>
+            </div>
             <div className="relative">
-              <Award className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+              <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
               <input
-                type="text"
-                value={barLicenseNo}
-                onChange={(e) => setBarLicenseNo(e.target.value)}
-                placeholder="e.g. DBA-9812-SC or Bar Roll No."
-                className="w-full bg-stone-50 border border-stone-300 rounded-xl pl-10 pr-3 py-2.5 text-sm font-mono font-bold focus:outline-none focus:border-brand-coral"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g. +880 1711-XXXXXX or 017XXXXXXXX"
+                className="w-full bg-stone-50 border border-stone-300 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium focus:outline-none focus:border-brand-coral"
                 required
               />
             </div>
             <p className="text-[11px] text-stone-500 mt-1">
-              Used to display your verified Bar Council enrollment seal under citizen advice.
+              Required for client chamber consultations and urgent legal notifications.
             </p>
           </div>
 
@@ -265,8 +293,11 @@ export default function LawyerSignupPage() {
             </div>
           </div>
 
-          <p className="text-xs text-stone-500 bg-stone-50 p-3 rounded-xl border border-stone-200">
-            💡 <strong>Next Step:</strong> After completing signup, you can configure your chamber address, consultation rates, contact number, and custom portrait in your dashboard.
+          <p className="text-xs text-stone-600 bg-brand-light/60 p-3 rounded-xl border border-brand-border/60 flex items-center gap-2">
+            <span>🚀</span>
+            <span>
+              <strong>Interactive Setup Tour:</strong> Once registered, you will be guided step-by-step through setting up your Bar License, chamber profile, and completing KYC verification to activate advice publishing.
+            </span>
           </p>
 
           {/* Submit */}

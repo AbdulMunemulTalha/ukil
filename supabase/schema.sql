@@ -15,13 +15,21 @@ CREATE TABLE IF NOT EXISTS profiles (
   bio TEXT,
   location VARCHAR(100),
   bar_license_no VARCHAR(50),
+  hide_bar_license BOOLEAN DEFAULT FALSE,
   specializations TEXT[],
   hourly_fee VARCHAR(50),
   rating NUMERIC(3,2) DEFAULT 5.00,
   review_count INT DEFAULT 0,
   is_verified BOOLEAN DEFAULT FALSE,
+  kyc_status VARCHAR(20) DEFAULT 'pending' CHECK (kyc_status IN ('pending', 'in_review', 'verified')),
+  nid_number VARCHAR(50),
+  kyc_data JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Migration snippet for existing databases:
+-- ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nid_number VARCHAR(50);
+-- ALTER TABLE profiles ADD COLUMN IF NOT EXISTS kyc_data JSONB DEFAULT '{}'::jsonb;
 
 -- 2. Categories Table
 CREATE TABLE IF NOT EXISTS categories (

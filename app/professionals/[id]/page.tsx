@@ -42,6 +42,8 @@ export default function ProfessionalDetailPage({ params }: { params: { id: strin
               rating: dbP.rating ? Number(dbP.rating) : 5.0,
               reviewCount: dbP.review_count || 0,
               barLicenseNo: dbP.bar_license_no || "",
+              hideBarLicense: Boolean(dbP.hide_bar_license),
+              phone: dbP.phone || "",
               hourlyFee: dbP.hourly_fee || "",
               avatar: dbP.avatar_url || getDefaultAvatar(dbP.full_name || "Advocate"),
               bio: dbP.bio || "",
@@ -123,7 +125,9 @@ export default function ProfessionalDetailPage({ params }: { params: { id: strin
               <div className="text-xs text-stone-500 flex items-center gap-3 mt-1.5">
                 <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {prof.location}</span>
                 <span>•</span>
-                <span className="font-mono font-semibold">License: {prof.barLicenseNo}</span>
+                <span className="font-mono font-semibold">
+                  License: {prof.hideBarLicense ? "Verified on file (Private)" : (prof.barLicenseNo || "Verified")}
+                </span>
               </div>
             </div>
           </div>

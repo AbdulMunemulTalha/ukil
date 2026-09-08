@@ -24,6 +24,7 @@ import { Question, Answer, Professional } from "../lib/mockData";
 import { DataService } from "../lib/db";
 import { createClient } from "../lib/supabase/client";
 import { getDefaultAvatar } from "../lib/avatar";
+import KycRequiredModal from "./KycRequiredModal";
 
 interface QuestionCardProps {
   question: Question;
@@ -43,7 +44,16 @@ export default function QuestionCard({ question }: QuestionCardProps) {
   const [adviceSuccess, setAdviceSuccess] = useState(false);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProfId, setSelectedProfId] = useState<string>("");
-  const [currentLawyer, setCurrentLawyer] = useState<{ id: string; name: string; license: string; role: string; avatar?: string } | null>(null);
+  const [currentLawyer, setCurrentLawyer] = useState<{
+    id: string;
+    name: string;
+    license: string;
+    role: string;
+    avatar?: string;
+    isVerified: boolean;
+    hideBarLicense: boolean;
+  } | null>(null);
+  const [showKycModal, setShowKycModal] = useState(false);
   const [votedAnswerIds, setVotedAnswerIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -59,12 +69,20 @@ export default function QuestionCard({ question }: QuestionCardProps) {
             .single();
 
           if (prof) {
+            // Check verification status from Supabase and local cache fallback
+            const localProfs = DataService.getProfessionals();
+            const localMatch = localProfs.find((p) => p.id === prof.id || p.id === user.id);
+            const isVerifiedAdvocate = prof.is_verified === true || prof.kyc_status === "verified" || localMatch?.verified === true;
+            const isHidden = prof.hide_bar_license === true || localMatch?.hideBarLicense === true;
+
             setCurrentLawyer({
               id: prof.id,
               name: prof.full_name,
               license: prof.bar_license_no || "VERIFIED-BAR",
               role: prof.role === "professional" ? "Verified Advocate" : "Legal Advisor",
               avatar: prof.avatar_url || getDefaultAvatar(prof.full_name),
+              isVerified: isVerifiedAdvocate,
+              hideBarLicense: isHidden,
             });
             setSelectedProfId(prof.id);
           }
@@ -139,6 +157,7 @@ export default function QuestionCard({ question }: QuestionCardProps) {
       professionalRole: currentLawyer.role,
       professionalAvatar: currentLawyer.avatar || getDefaultAvatar(currentLawyer.name),
       barLicenseNo: currentLawyer.license,
+      hideBarLicense: currentLawyer.hideBarLicense,
       content: adviceText,
     });
 
@@ -299,7 +318,13 @@ export default function QuestionCard({ question }: QuestionCardProps) {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setIsWritingAdvice(!isWritingAdvice)}
+                onClick={() => {
+                  if (currentLawyer && !currentLawyer.isVerified) {
+                    setShowKycModal(true);
+                    return;
+                  }
+                  setIsWritingAdvice(!isWritingAdvice);
+                }}
                 className="text-xs font-bold bg-brand-coral text-white hover:bg-brand-hover px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1 cursor-pointer"
               >
                 {isWritingAdvice ? "Close Editor" : "+ Provide Advice as Lawyer"}
@@ -430,7 +455,13 @@ export default function QuestionCard({ question }: QuestionCardProps) {
               </div>
               <button
                 type="button"
-                onClick={() => setIsWritingAdvice(true)}
+                onClick={() => {
+                  if (currentLawyer && !currentLawyer.isVerified) {
+                    setShowKycModal(true);
+                    return;
+                  }
+                  setIsWritingAdvice(true);
+                }}
                 className="inline-flex items-center gap-1.5 text-xs font-bold bg-brand-coral text-white px-4 py-2 rounded-xl shadow-coral hover:bg-brand-hover transition-transform active:scale-95 cursor-pointer"
               >
                 + Provide Legal Advice as a Lawyer
@@ -453,7 +484,10 @@ export default function QuestionCard({ question }: QuestionCardProps) {
                           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 fill-emerald-100" />
                         </div>
                         <div className="text-[10px] text-stone-500">
-                          {ans.professionalRole} • License: <span className="font-semibold text-stone-700">{ans.barLicenseNo}</span>
+                          {ans.professionalRole} • License:{" "}
+                          <span className="font-semibold text-stone-700">
+                            {ans.hideBarLicense ? "Verified on file" : (ans.barLicenseNo || "Verified")}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -498,6 +532,12 @@ export default function QuestionCard({ question }: QuestionCardProps) {
           )}
         </div>
       )}
+
+      {/* KYC Verification Gate Modal */}
+      <KycRequiredModal
+        isOpen={showKycModal}
+        onClose={() => setShowKycModal(false)}
+      />
     </article>
   );
 }

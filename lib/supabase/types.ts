@@ -134,6 +134,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bar_license_no: string | null
+          hide_bar_license: boolean | null
           bio: string | null
           created_at: string | null
           email: string | null
@@ -141,6 +142,9 @@ export type Database = {
           hourly_fee: string | null
           id: string
           is_verified: boolean | null
+          kyc_status: "pending" | "in_review" | "verified" | null
+          nid_number: string | null
+          kyc_data: Json | null
           location: string | null
           phone: string | null
           rating: number | null
@@ -152,6 +156,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bar_license_no?: string | null
+          hide_bar_license?: boolean | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
@@ -159,6 +164,9 @@ export type Database = {
           hourly_fee?: string | null
           id?: string
           is_verified?: boolean | null
+          kyc_status?: "pending" | "in_review" | "verified" | null
+          nid_number?: string | null
+          kyc_data?: Json | null
           location?: string | null
           phone?: string | null
           rating?: number | null
@@ -170,6 +178,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bar_license_no?: string | null
+          hide_bar_license?: boolean | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
@@ -177,6 +186,9 @@ export type Database = {
           hourly_fee?: string | null
           id?: string
           is_verified?: boolean | null
+          kyc_status?: "pending" | "in_review" | "verified" | null
+          nid_number?: string | null
+          kyc_data?: Json | null
           location?: string | null
           phone?: string | null
           rating?: number | null

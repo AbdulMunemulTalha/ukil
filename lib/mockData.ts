@@ -33,6 +33,7 @@ export interface Answer {
   professionalRole: string;
   professionalAvatar: string;
   barLicenseNo: string;
+  hideBarLicense?: boolean;
   content: string;
   createdAt: string;
   upvotes: number;
@@ -48,11 +49,26 @@ export interface Professional {
   rating: number;
   reviewCount: number;
   barLicenseNo: string;
+  hideBarLicense?: boolean;
+  phone?: string;
+  email?: string;
+  nidNumber?: string;
   hourlyFee: string;
   avatar: string;
   bio: string;
   answersCount: number;
   verified: boolean;
+  kycStatus?: 'pending' | 'in_review' | 'verified';
+  kycData?: {
+    barRollNo?: string;
+    barAssociation?: string;
+    enrollmentYear?: string;
+    nidNumber?: string;
+    documentName?: string;
+    documentUrl?: string;
+    submittedAt?: string;
+    rejectionReason?: string;
+  };
 }
 
 export const MOCK_CATEGORIES: Category[] = [
@@ -303,5 +319,67 @@ export const MOCK_PROFESSIONALS: Professional[] = [
     bio: "Fellow Chartered Accountant assisting individuals and corporate entities in NBR audits, tax optimization, and VAT appeals.",
     answersCount: 110,
     verified: true,
+    kycStatus: "verified",
+    email: "kamrul.audit@taxchamber.com",
+    phone: "+880 1711-882299",
+    nidNumber: "198426920198271",
+  },
+  {
+    id: "a0000000-0000-0000-0000-000000000004",
+    name: "Advocate Rafiqul Islam, LL.M",
+    role: "High Court & Criminal Defense Advocate",
+    specialization: ["Criminal Defense", "Bail & Remand", "Cyber Security Act"],
+    location: "Kakrail & Supreme Court, Dhaka",
+    rating: 4.7,
+    reviewCount: 12,
+    barLicenseNo: "BC-2023-DH-8819",
+    hideBarLicense: false,
+    phone: "+880 1819-223344",
+    email: "rafiqul.advocate@gmail.com",
+    nidNumber: "198826920198234",
+    hourlyFee: "৳2,200 / Session",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+    bio: "Advocate practicing at Supreme Court of Bangladesh with 9 years of trial experience in criminal defenses and cyber offenses.",
+    answersCount: 14,
+    verified: false,
+    kycStatus: "in_review",
+    kycData: {
+      barRollNo: "BC-2023-DH-8819",
+      barAssociation: "Supreme Court Bar Association, Dhaka",
+      enrollmentYear: "2019",
+      nidNumber: "198826920198234",
+      documentName: "Bangladesh_Bar_Council_Certificate_8819.pdf",
+      documentUrl: "https://example.com/bar-cert-8819.pdf",
+      submittedAt: "2 hours ago",
+    },
+  },
+  {
+    id: "a0000000-0000-0000-0000-000000000005",
+    name: "Advocate Sharmin Sultana",
+    role: "Corporate & Commercial Law Practitioner",
+    specialization: ["Company Law", "RJSC Filings", "Contract Disputes"],
+    location: "Banani, Dhaka",
+    rating: 4.6,
+    reviewCount: 8,
+    barLicenseNo: "DH-BAR-2024-110",
+    hideBarLicense: true,
+    phone: "+880 1912-778899",
+    email: "sharmin.law@corporatechamber.com",
+    nidNumber: "199426920198842",
+    hourlyFee: "৳3,500 / Session",
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80",
+    bio: "Advising startups, international trade houses, and business corporations on compliance and arbitration under Arbitration Act 2001.",
+    answersCount: 0,
+    verified: false,
+    kycStatus: "in_review",
+    kycData: {
+      barRollNo: "DH-BAR-2024-110",
+      barAssociation: "Dhaka Bar Association",
+      enrollmentYear: "2024",
+      nidNumber: "199426920198842",
+      documentName: "Dhaka_Bar_ID_Card_Sharmin.pdf",
+      documentUrl: "https://example.com/dhaka-bar-110.pdf",
+      submittedAt: "Yesterday",
+    },
   },
 ];

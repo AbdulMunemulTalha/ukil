@@ -40,6 +40,7 @@ export default function Footer() {
               <li><Link href="/track" className="hover:text-brand-coral transition-colors">Track Submission Status</Link></li>
               <li><Link href="/professionals" className="hover:text-brand-coral transition-colors">Directory of Lawyers</Link></li>
               <li><Link href="/dashboard" className="hover:text-brand-coral transition-colors">Lawyer Portal Login</Link></li>
+              <li><Link href="/admin" className="hover:text-brand-coral transition-colors text-xs font-semibold text-stone-500">Admin Portal (KYC & Ops)</Link></li>
             </ul>
           </div>
 

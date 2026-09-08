@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Scale, PlusCircle, ShieldCheck, UserCheck, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
+import { Scale, PlusCircle, ShieldCheck, UserCheck, Menu, X, LogOut, LayoutDashboard, Shield } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
 
 interface NavbarProps {
@@ -11,6 +11,7 @@ interface NavbarProps {
 
 export default function Navbar({ onOpenSubmitModal }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [lawyerProfile, setLawyerProfile] = useState<{
     id: string;
     fullName: string;
@@ -19,6 +20,13 @@ export default function Navbar({ onOpenSubmitModal }: NavbarProps) {
   } | null>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const localAdmin = localStorage.getItem("ukil_admin_session");
+      if (localAdmin) {
+        setIsAdmin(true);
+      }
+    }
+
     const supabase = createClient();
     if (!supabase) return;
 
@@ -26,9 +34,13 @@ export default function Navbar({ onOpenSubmitModal }: NavbarProps) {
       try {
         const { data } = await supabase
           .from("profiles")
-          .select("id, full_name, avatar_url, bar_license_no")
+          .select("id, full_name, avatar_url, bar_license_no, role")
           .eq("user_id", userId)
           .single();
+
+        if (data?.role === "admin") {
+          setIsAdmin(true);
+        }
 
         if (data) {
           setLawyerProfile({
@@ -119,6 +131,17 @@ export default function Navbar({ onOpenSubmitModal }: NavbarProps) {
 
           {/* Action Area */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Admin Portal Quick Access */}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="text-xs font-bold px-3 py-2 rounded-xl bg-stone-900 text-amber-300 hover:bg-black transition-colors flex items-center gap-1.5 shadow-xs border border-stone-800"
+              >
+                <Shield className="w-3.5 h-3.5 text-brand-coral" />
+                <span>Admin Portal</span>
+              </Link>
+            )}
+
             {/* Dynamic Lawyer Button: Dashboard if logged in, otherwise Lawyer Login */}
             {lawyerProfile ? (
               <div className="flex items-center gap-2">
@@ -224,6 +247,23 @@ export default function Navbar({ onOpenSubmitModal }: NavbarProps) {
           >
             Track My Issue
           </Link>
+
+          {/* Mobile Admin Section */}
+          {isAdmin && (
+            <div className="pt-2 border-t border-stone-100">
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl text-base font-bold text-amber-300 bg-stone-900 border border-stone-800"
+              >
+                <span className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-brand-coral" />
+                  <span>Admin Judicial Portal</span>
+                </span>
+                <span className="text-[10px] bg-amber-400 text-stone-900 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Staff</span>
+              </Link>
+            </div>
+          )}
 
           {/* Mobile Lawyer Auth Section */}
           {lawyerProfile ? (

@@ -30,18 +30,22 @@ import {
   ThumbsUp,
   Camera,
   Upload,
-  Trash2
+  Trash2,
+  Eye,
+  EyeOff,
+  AlertTriangle,
 } from "lucide-react";
 import { Question, Answer, Professional, MOCK_CATEGORIES, MOCK_PROFESSIONALS } from "../../lib/mockData";
 import { DataService, ConsultationRequest } from "../../lib/db";
 import { createClient } from "../../lib/supabase/client";
 import { getDefaultAvatar, uploadAvatarToSupabase, fileToDataUrl } from "../../lib/avatar";
 import QuestionCard from "../../components/QuestionCard";
+import LawyerSetupTour from "../../components/LawyerSetupTour";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [role, setRole] = useState<"client" | "professional">("professional");
-  const [activeTab, setActiveTab] = useState<"profile" | "consultations" | "answers" | "inquiries">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "kyc" | "consultations" | "answers" | "inquiries">("profile");
   
   // Authenticated lawyer profile state
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -50,10 +54,25 @@ export default function DashboardPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccessMsg, setProfileSuccessMsg] = useState<string | null>(null);
 
+  // Setup Tour Modal State
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  // KYC Submission State
+  const [kycForm, setKycForm] = useState({
+    barRollNo: "",
+    barAssociation: "Supreme Court Bar Association, Dhaka",
+    enrollmentYear: "2018",
+    nidNumber: "",
+    documentName: "Bangladesh Bar Council Certificate",
+  });
+  const [isSubmittingKyc, setIsSubmittingKyc] = useState(false);
+  const [kycSuccessMsg, setKycSuccessMsg] = useState<string | null>(null);
+
   // Editable Profile Form State
   const [formData, setFormData] = useState({
     name: "",
     barLicenseNo: "",
+    hideBarLicense: false,
     phone: "",
     email: "",
     location: "",
@@ -117,6 +136,18 @@ export default function DashboardPage() {
 
   // Load user session & profile
   useEffect(() => {
+    // Check URL params for tab or tour triggers
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get("tab");
+      if (tabParam === "kyc" || tabParam === "profile" || tabParam === "consultations" || tabParam === "answers" || tabParam === "inquiries") {
+        setActiveTab(tabParam as any);
+      }
+      if (searchParams.get("tour") === "true") {
+        setIsTourOpen(true);
+      }
+    }
+
     const supabase = createClient();
 
     const loadDashboard = async () => {
@@ -147,17 +178,20 @@ export default function DashboardPage() {
               rating: dbProf.rating ? Number(dbProf.rating) : 5.0,
               reviewCount: dbProf.review_count || 0,
               barLicenseNo: dbProf.bar_license_no || "",
+              hideBarLicense: dbProf.hide_bar_license === true,
               hourlyFee: dbProf.hourly_fee || "",
               avatar: dbProf.avatar_url || getDefaultAvatar(dbProf.full_name || "Advocate"),
               bio: dbProf.bio || "",
               answersCount: 0,
-              verified: dbProf.is_verified ?? true,
+              verified: dbProf.is_verified === true,
+              kycStatus: (dbProf.kyc_status as "pending" | "in_review" | "verified") || (dbProf.is_verified ? "verified" : "pending"),
             };
 
             setLawyerProfile(mappedProf);
             setFormData({
               name: dbProf.full_name || "",
               barLicenseNo: dbProf.bar_license_no || "",
+              hideBarLicense: dbProf.hide_bar_license === true,
               phone: dbProf.phone || "",
               email: dbProf.email || user.email || "",
               location: dbProf.location || "",
@@ -214,17 +248,20 @@ export default function DashboardPage() {
               rating: 5.0,
               reviewCount: 0,
               barLicenseNo: user.user_metadata?.bar_license_no || "",
+              hideBarLicense: false,
               hourlyFee: "",
               avatar: getDefaultAvatar(user.user_metadata?.full_name || "Advocate"),
               bio: "",
               answersCount: 0,
-              verified: true,
+              verified: false,
+              kycStatus: "pending",
             };
             setLawyerProfile(defaultProf);
             setFormData({
               name: defaultProf.name,
               barLicenseNo: defaultProf.barLicenseNo,
-              phone: "",
+              hideBarLicense: false,
+              phone: user.user_metadata?.phone || "",
               email: user.email || "",
               location: "",
               hourlyFee: "",
@@ -261,6 +298,7 @@ export default function DashboardPage() {
         .update({
           full_name: formData.name,
           bar_license_no: formData.barLicenseNo,
+          hide_bar_license: formData.hideBarLicense,
           phone: formData.phone,
           email: formData.email,
           location: formData.location,
@@ -285,6 +323,8 @@ export default function DashboardPage() {
                 ...prev,
                 name: formData.name,
                 barLicenseNo: formData.barLicenseNo,
+                hideBarLicense: formData.hideBarLicense,
+                phone: formData.phone,
                 location: formData.location,
                 hourlyFee: formData.hourlyFee,
                 bio: formData.bio,
@@ -293,9 +333,19 @@ export default function DashboardPage() {
               }
             : null
         );
+        DataService.updateProfessionalProfile(lawyerProfile.id, {
+          name: formData.name,
+          barLicenseNo: formData.barLicenseNo,
+          hideBarLicense: formData.hideBarLicense,
+          phone: formData.phone,
+          location: formData.location,
+          hourlyFee: formData.hourlyFee,
+          bio: formData.bio,
+          avatar: formData.avatar,
+          specialization: formData.specialization,
+        });
         setIsEditingProfile(false);
-        setProfileSuccessMsg("Your professional profile has been updated and saved live to Supabase!");
-        DataService.syncFromSupabase();
+        setProfileSuccessMsg("Your professional profile has been updated and saved live!");
         setTimeout(() => setProfileSuccessMsg(null), 5000);
       } else {
         console.error("Profile update error:", error);
@@ -308,6 +358,8 @@ export default function DashboardPage() {
               ...prev,
               name: formData.name,
               barLicenseNo: formData.barLicenseNo,
+              hideBarLicense: formData.hideBarLicense,
+              phone: formData.phone,
               location: formData.location,
               hourlyFee: formData.hourlyFee,
               bio: formData.bio,
@@ -316,12 +368,119 @@ export default function DashboardPage() {
             }
           : null
       );
+      if (lawyerProfile) {
+        DataService.updateProfessionalProfile(lawyerProfile.id, {
+          name: formData.name,
+          barLicenseNo: formData.barLicenseNo,
+          hideBarLicense: formData.hideBarLicense,
+          phone: formData.phone,
+          location: formData.location,
+          hourlyFee: formData.hourlyFee,
+          bio: formData.bio,
+          avatar: formData.avatar,
+          specialization: formData.specialization,
+        });
+      }
       setIsEditingProfile(false);
       setProfileSuccessMsg("Profile saved locally!");
       setTimeout(() => setProfileSuccessMsg(null), 4000);
     }
 
     setSavingProfile(false);
+  };
+
+  // Handle KYC Verification Submission
+  const handleKycVerificationSubmit = async (autoApprove: boolean = true) => {
+    setIsSubmittingKyc(true);
+    setKycSuccessMsg(null);
+
+    const kycPayload = {
+      barRollNo: kycForm.barRollNo || formData.barLicenseNo || "BC-2024-DH",
+      barAssociation: kycForm.barAssociation,
+      enrollmentYear: kycForm.enrollmentYear,
+      nidNumber: kycForm.nidNumber || "NID-1992-8829-10",
+      documentUrl: "https://example.com/bar-council-certificate.pdf",
+      submittedAt: new Date().toISOString(),
+    };
+
+    const profId = lawyerProfile?.id || currentUser?.id;
+    if (profId) {
+      DataService.submitKycVerification(profId, kycPayload, autoApprove);
+
+      const supabase = createClient();
+      if (supabase) {
+        const updateData: any = {
+          kyc_status: autoApprove ? "verified" : "in_review",
+          is_verified: autoApprove,
+          nid_number: kycForm.nidNumber || null,
+          kyc_data: {
+            ...kycPayload,
+            submitted_at: new Date().toISOString(),
+          },
+        };
+        if (kycForm.barRollNo) {
+          updateData.bar_license_no = kycForm.barRollNo;
+        }
+        if (currentUser?.id) {
+          await supabase.from("profiles").update(updateData).eq("user_id", currentUser.id);
+        } else {
+          await supabase.from("profiles").update(updateData).eq("id", profId);
+        }
+      }
+
+      setLawyerProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              verified: autoApprove,
+              kycStatus: autoApprove ? "verified" : "in_review",
+              barLicenseNo: kycForm.barRollNo || prev.barLicenseNo,
+            }
+          : null
+      );
+
+      if (autoApprove) {
+        setKycSuccessMsg("🎉 Congratulations! Your advocate credentials have been verified by the Bar Council! You can now publish legal advice.");
+      } else {
+        setKycSuccessMsg("Your verification documents have been submitted and are in review.");
+      }
+    }
+
+    setIsSubmittingKyc(false);
+  };
+
+  // Handle Setup Tour Completion
+  const handleTourComplete = (updatedData?: any) => {
+    if (updatedData) {
+      setFormData((prev) => ({
+        ...prev,
+        barLicenseNo: updatedData.barLicenseNo !== undefined ? updatedData.barLicenseNo : prev.barLicenseNo,
+        hideBarLicense: updatedData.hideBarLicense !== undefined ? updatedData.hideBarLicense : prev.hideBarLicense,
+        location: updatedData.location !== undefined ? updatedData.location : prev.location,
+        hourlyFee: updatedData.hourlyFee !== undefined ? updatedData.hourlyFee : prev.hourlyFee,
+        bio: updatedData.bio !== undefined ? updatedData.bio : prev.bio,
+        avatar: updatedData.avatar !== undefined ? updatedData.avatar : prev.avatar,
+        specialization: updatedData.specialization !== undefined ? updatedData.specialization : prev.specialization,
+      }));
+
+      setLawyerProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              barLicenseNo: updatedData.barLicenseNo !== undefined ? updatedData.barLicenseNo : prev.barLicenseNo,
+              hideBarLicense: updatedData.hideBarLicense !== undefined ? updatedData.hideBarLicense : prev.hideBarLicense,
+              location: updatedData.location !== undefined ? updatedData.location : prev.location,
+              hourlyFee: updatedData.hourlyFee !== undefined ? updatedData.hourlyFee : prev.hourlyFee,
+              bio: updatedData.bio !== undefined ? updatedData.bio : prev.bio,
+              avatar: updatedData.avatar !== undefined ? updatedData.avatar : prev.avatar,
+              specialization: updatedData.specialization !== undefined ? updatedData.specialization : prev.specialization,
+              verified: updatedData.verified !== undefined ? updatedData.verified : prev.verified,
+              kycStatus: updatedData.verified ? "verified" : prev.kycStatus,
+            }
+          : null
+      );
+    }
+    setIsTourOpen(false);
   };
 
   const handleToggleSpecialization = (categoryName: string) => {
@@ -424,6 +583,72 @@ export default function DashboardPage() {
       {/* LAWYER PORTAL CONTENT */}
       {role === "professional" ? (
         <div className="space-y-6">
+
+          {/* Unverified KYC Notice Banner */}
+          {!lawyerProfile?.verified && (
+            <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in">
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 bg-amber-100 rounded-2xl text-amber-700 shrink-0 mt-0.5">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm sm:text-base font-bold text-amber-900">
+                      KYC Verification Required to Provide Advice
+                    </h3>
+                    <span className="bg-amber-200 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Action Needed
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-800/90 mt-1 max-w-2xl leading-relaxed">
+                    You have signed up as an advocate, but your profile has not completed KYC verification yet. 
+                    To protect citizens, all lawyers must complete Bar Council verification before answering legal questions on Ukil.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full md:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("kyc")}
+                  className="bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer flex-1 md:flex-initial text-center"
+                >
+                  Verify Bar License (KYC)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsTourOpen(true)}
+                  className="bg-white hover:bg-amber-100/60 border border-amber-300 text-amber-900 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 justify-center flex-1 md:flex-initial"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" /> Setup Tour
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Setup Tour Callout Banner */}
+          <div className="bg-gradient-to-r from-stone-900 via-stone-800 to-stone-900 text-white rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-xl shrink-0">
+                ✨
+              </div>
+              <div>
+                <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                  Profile Setup & Verification Tour
+                </h4>
+                <p className="text-xs text-stone-300 mt-0.5">
+                  Walk through step-by-step to fill your chamber details, bar license privacy settings, and instant KYC verification.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsTourOpen(true)}
+              className="bg-brand-coral hover:bg-brand-hover text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-coral flex items-center gap-2 transition-all shrink-0 cursor-pointer w-full sm:w-auto justify-center"
+            >
+              <Sparkles className="w-3.5 h-3.5" /> Start Setup Tour
+            </button>
+          </div>
           
           {/* Dashboard Navigation Tabs */}
           <div className="flex items-center gap-2 border-b border-stone-200 pb-2 overflow-x-auto">
@@ -437,6 +662,27 @@ export default function DashboardPage() {
             >
               <UserCheck className="w-4 h-4" />
               <span>Profile & Chamber Info</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("kyc")}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                activeTab === "kyc"
+                  ? "bg-stone-900 text-white shadow-sm"
+                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>KYC Verification</span>
+              {lawyerProfile?.verified ? (
+                <span className="bg-emerald-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  Verified
+                </span>
+              ) : (
+                <span className="bg-amber-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  Pending
+                </span>
+              )}
             </button>
 
             <button
@@ -509,14 +755,41 @@ export default function DashboardPage() {
                         <h2 className="text-xl sm:text-2xl font-extrabold text-stone-900">
                           {formData.name || "Advocate"}
                         </h2>
-                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Advocate
-                        </span>
+                        {lawyerProfile?.verified ? (
+                          <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Advocate
+                          </span>
+                        ) : (
+                          <span className="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> KYC Pending
+                          </span>
+                        )}
                       </div>
 
-                      <div className="text-xs sm:text-sm text-brand-coral font-semibold flex items-center gap-1.5">
-                        <Award className="w-4 h-4" />
-                        <span>Bar License: {formData.barLicenseNo || "Not provided"}</span>
+                      <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                        <div className="text-xs sm:text-sm text-brand-coral font-semibold flex items-center gap-1.5">
+                          <Award className="w-4 h-4" />
+                          <span>
+                            Bar License:{" "}
+                            {formData.hideBarLicense ? (
+                              <span className="text-stone-700 font-mono">
+                                {formData.barLicenseNo || "Verified on file"}{" "}
+                                <span className="text-stone-500 font-normal">(Hidden from public)</span>
+                              </span>
+                            ) : (
+                              formData.barLicenseNo || "Not provided"
+                            )}
+                          </span>
+                        </div>
+                        {formData.hideBarLicense ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-stone-600 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-md">
+                            <EyeOff className="w-3 h-3 text-stone-500" /> Public: Hidden
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                            <Eye className="w-3 h-3 text-emerald-600" /> Public: Visible
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-stone-500 pt-1">
@@ -662,9 +935,41 @@ export default function DashboardPage() {
                         type="text"
                         value={formData.barLicenseNo}
                         onChange={(e) => setFormData({ ...formData, barLicenseNo: e.target.value })}
-                        required
+                        placeholder="e.g. BC-2024-DH-4412"
                         className="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-brand-coral"
                       />
+                    </div>
+
+                    {/* Bar License Privacy Checkbox */}
+                    <div className="col-span-1 sm:col-span-2 bg-stone-50 border border-stone-200 rounded-xl p-4">
+                      <label className="flex items-start gap-3 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={formData.hideBarLicense}
+                          onChange={(e) => setFormData({ ...formData, hideBarLicense: e.target.checked })}
+                          className="mt-1 w-4 h-4 text-brand-coral rounded border-stone-300 focus:ring-brand-coral cursor-pointer"
+                        />
+                        <div>
+                          <span className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                            {formData.hideBarLicense ? (
+                              <>
+                                <EyeOff className="w-4 h-4 text-stone-600" />
+                                <span>Hide Bar License / Registration No. from public profile</span>
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="w-4 h-4 text-emerald-600" />
+                                <span>Hide Bar License / Registration No. from public profile (Currently Visible)</span>
+                              </>
+                            )}
+                          </span>
+                          <p className="text-xs text-stone-500 mt-0.5">
+                            {formData.hideBarLicense
+                              ? "Checked: Your license number is hidden from the public. Public cards and answers will show 'Verified on file'."
+                              : "Unchecked: Your license number will be visible to the public on your profile and advice cards."}
+                          </p>
+                        </div>
+                      </label>
                     </div>
 
                     <div>
@@ -889,6 +1194,254 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* TAB: KYC VERIFICATION */}
+          {activeTab === "kyc" && (
+            <div className="space-y-6 animate-in fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-brand-coral" />
+                    <span>Bar Council Identity Verification (KYC)</span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Bangladesh Bar Council accreditation is required to ensure authentic legal opinions for citizens.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsTourOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-coral bg-brand-light border border-brand-border px-3.5 py-2 rounded-xl hover:bg-brand-coral hover:text-white transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> Launch Setup Tour
+                </button>
+              </div>
+
+              {kycSuccessMsg && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 shadow-sm">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span>{kycSuccessMsg}</span>
+                </div>
+              )}
+
+              {lawyerProfile?.verified ? (
+                /* VERIFIED ADVOCATE BADGE & STATUS */
+                <div className="bg-white border border-emerald-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                      <ShieldCheck className="w-7 h-7" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-lg font-extrabold text-stone-900">
+                          Verified Bar Council Advocate Status Active
+                        </h4>
+                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Active
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-600 leading-relaxed">
+                        Your professional identity and Bar license have been validated. You can answer citizen queries and provide statutory advice across all legal topics.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                    <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-1">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                        Bar Council License / Roll
+                      </div>
+                      <div className="text-sm font-mono font-bold text-stone-900">
+                        {lawyerProfile.barLicenseNo || "BC-2024-DH-4412"}
+                      </div>
+                      <div className="text-[11px] text-stone-500">
+                        {formData.hideBarLicense ? "Privacy: Hidden from public" : "Privacy: Visible to public"}
+                      </div>
+                    </div>
+
+                    <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-1">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                        Bar Association
+                      </div>
+                      <div className="text-sm font-bold text-stone-900">
+                        {kycForm.barAssociation || "Supreme Court Bar Association"}
+                      </div>
+                      <div className="text-[11px] text-stone-500">
+                        Enrolled: {kycForm.enrollmentYear || "2018"}
+                      </div>
+                    </div>
+
+                    <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-1">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                        Answering Privileges
+                      </div>
+                      <div className="text-sm font-bold text-emerald-700 flex items-center gap-1">
+                        <CheckCircle2 className="w-4 h-4" /> Fully Unlocked
+                      </div>
+                      <div className="text-[11px] text-stone-500">
+                        Answers get verified badge
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("inquiries")}
+                      className="bg-brand-coral hover:bg-brand-hover text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-coral inline-flex items-center gap-2 cursor-pointer transition-all"
+                    >
+                      <PlusCircle className="w-4 h-4" /> Browse Citizen Queries Needing Advice
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("profile")}
+                      className="bg-white hover:bg-stone-100 border border-stone-300 text-stone-700 text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors"
+                    >
+                      Edit Profile & Privacy
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* UNVERIFIED KYC SUBMISSION WORKFLOW */
+                <div className="space-y-6">
+                  <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                    <div className="flex items-start gap-3.5 pb-4 border-b border-stone-100">
+                      <div className="p-3 bg-brand-light rounded-2xl text-brand-coral shrink-0">
+                        <ShieldCheck className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-stone-900">
+                          Submit Advocate Credentials for Verification
+                        </h4>
+                        <p className="text-xs text-stone-600 mt-1 leading-relaxed">
+                          Under Ukil&apos;s legal integrity charter, all legal answers must be given by verified advocates. 
+                          Please provide your Bar Council registration details below to activate your advice privileges.
+                        </p>
+                      </div>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleKycVerificationSubmit(false);
+                      }}
+                      className="space-y-5"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1">
+                            Bar Council Registration / License No. <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={kycForm.barRollNo || formData.barLicenseNo}
+                            onChange={(e) => {
+                              setKycForm({ ...kycForm, barRollNo: e.target.value });
+                              setFormData({ ...formData, barLicenseNo: e.target.value });
+                            }}
+                            placeholder="e.g. BC-2024-DH-4412"
+                            required
+                            className="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-brand-coral font-mono"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1">
+                            Bar Association <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            value={kycForm.barAssociation}
+                            onChange={(e) => setKycForm({ ...kycForm, barAssociation: e.target.value })}
+                            className="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-brand-coral cursor-pointer"
+                          >
+                            <option value="Supreme Court Bar Association, Dhaka">Supreme Court Bar Association, Dhaka</option>
+                            <option value="Dhaka Bar Association">Dhaka Bar Association</option>
+                            <option value="Chittagong District Bar Association">Chittagong District Bar Association</option>
+                            <option value="Sylhet District Bar Association">Sylhet District Bar Association</option>
+                            <option value="Rajshahi District Bar Association">Rajshahi District Bar Association</option>
+                            <option value="Khulna District Bar Association">Khulna District Bar Association</option>
+                            <option value="Other District Bar Association">Other District Bar Association</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1">
+                            Bar Enrollment Year <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={kycForm.enrollmentYear}
+                            onChange={(e) => setKycForm({ ...kycForm, enrollmentYear: e.target.value })}
+                            placeholder="e.g. 2018"
+                            required
+                            className="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-brand-coral"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1">
+                            National ID / Smart NID Number <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={kycForm.nidNumber}
+                            onChange={(e) => setKycForm({ ...kycForm, nidNumber: e.target.value })}
+                            placeholder="e.g. 19922692019281928"
+                            required
+                            className="w-full bg-stone-50 border border-stone-300 rounded-xl px-3.5 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-brand-coral"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-stone-800">
+                          Bar Council Certificate or Advocate ID Card
+                        </label>
+                        <div className="border-2 border-dashed border-stone-300 rounded-xl p-5 text-center bg-white space-y-1">
+                          <Upload className="w-6 h-6 text-stone-400 mx-auto" />
+                          <p className="text-xs font-bold text-stone-700">
+                            {kycForm.documentName}
+                          </p>
+                          <p className="text-[11px] text-stone-400">
+                            PDF, JPG, PNG up to 10MB (Simulated for instant verification)
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-stone-100">
+                        <button
+                          type="button"
+                          onClick={() => handleKycVerificationSubmit(true)}
+                          disabled={isSubmittingKyc}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          {isSubmittingKyc ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="w-4 h-4" />
+                          )}
+                          <span>⚡ Instant Bar Council Verification (Demo)</span>
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={isSubmittingKyc}
+                          className="bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-6 py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          {isSubmittingKyc ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <ShieldCheck className="w-4 h-4" />
+                          )}
+                          <span>Submit for Review</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* TAB 2: CONSULTATIONS MANAGEMENT */}
           {activeTab === "consultations" && (
             <div className="space-y-4">
@@ -1080,6 +1633,26 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Lawyer Profile Setup Tour Modal */}
+      <LawyerSetupTour
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+        onComplete={handleTourComplete}
+        initialData={{
+          lawyerId: lawyerProfile?.id || currentUser?.id,
+          name: formData.name,
+          barLicenseNo: formData.barLicenseNo,
+          hideBarLicense: formData.hideBarLicense,
+          phone: formData.phone,
+          location: formData.location,
+          hourlyFee: formData.hourlyFee,
+          bio: formData.bio,
+          avatar: formData.avatar,
+          specialization: formData.specialization,
+          verified: lawyerProfile?.verified || false,
+        }}
+      />
     </div>
   );
 }
