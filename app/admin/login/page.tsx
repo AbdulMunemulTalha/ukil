@@ -249,66 +249,91 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-stone-50/50">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-stone-950 text-stone-100 relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 selection:bg-amber-400 selection:text-stone-950 overflow-hidden">
+      {/* Ambient Cryptographic Background Lighting */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+      
+      {/* Subtle Security Grid Pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f29370f_1px,transparent_1px),linear-gradient(to_bottom,#1f29370f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
+
+      <div className="max-w-md w-full space-y-7 relative z-10">
         
-        {/* Header */}
+        {/* Terminal Header */}
         <div className="text-center space-y-3">
-          <div className="w-14 h-14 rounded-2xl bg-stone-900 border border-stone-800 flex items-center justify-center text-brand-coral mx-auto shadow-xl">
-            <Shield className="w-8 h-8 text-brand-coral" />
-          </div>
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-stone-900 text-stone-300 border border-stone-700 mb-2">
-              <Lock className="w-3 h-3 text-brand-coral" /> Restricted Access
+          <div className="relative inline-block">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-950 border-2 border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto shadow-2xl shadow-amber-950/50">
+              <Shield className="w-8 h-8 text-amber-400 fill-amber-400/20" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-              Ukil Admin Portal
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-stone-950 flex items-center justify-center">
+              <CheckCircle2 className="w-3 h-3 text-stone-950 font-bold" />
+            </div>
+          </div>
+
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 mb-2">
+              <Lock className="w-3 h-3 text-amber-400" /> RESTRICTED JUDICIAL COMMAND
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Ukil Executive Console
             </h1>
-            <p className="text-xs text-stone-600 max-w-xs mx-auto mt-1">
-              KYC verification review, lawyer credential approvals, and legal content moderation.
+            <p className="text-xs text-stone-400 max-w-xs mx-auto mt-1.5 leading-relaxed">
+              Platform administration, advocate KYC credential oversight, and role-based authority management.
             </p>
+          </div>
+
+          {/* Security Telemetry Strip */}
+          <div className="flex items-center justify-center gap-3 text-[10px] font-mono text-stone-400 pt-1">
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> 256-Bit TLS</span>
+            <span>•</span>
+            <span>RBAC Guard: Enforced</span>
+            <span>•</span>
+            <span>Audit: Active</span>
           </div>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+        {/* Security Console Form Card */}
+        <div className="bg-stone-900/90 border border-stone-800/90 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-6">
           {errorMsg && (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="bg-red-950/60 border border-red-500/50 text-red-200 p-3.5 rounded-xl text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div>
-              <label className="text-xs font-bold text-stone-700 uppercase tracking-wider block mb-1">
-                Admin Email Address
+              <label className="text-[11px] font-bold text-stone-300 uppercase tracking-wider block mb-1.5">
+                Administrative Identifier (Email)
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@ukil.com"
-                  className="w-full bg-stone-50 border border-stone-300 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium text-stone-900 focus:outline-none focus:border-stone-900"
+                  placeholder="talha@pixheads.com"
+                  className="w-full bg-stone-950/80 border border-stone-800 rounded-xl pl-10 pr-3 py-2.5 text-sm font-mono text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/40 transition-colors"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-stone-700 uppercase tracking-wider block mb-1">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-bold text-stone-300 uppercase tracking-wider block">
+                  Executive Access Key (Password)
+                </label>
+                <span className="text-[10px] text-stone-500 font-mono">Protected</span>
+              </div>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-stone-50 border border-stone-300 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium text-stone-900 focus:outline-none focus:border-stone-900"
+                  placeholder="••••••••••••"
+                  className="w-full bg-stone-950/80 border border-stone-800 rounded-xl pl-10 pr-3 py-2.5 text-sm font-mono text-stone-100 placeholder:text-stone-600 focus:outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/40 transition-colors"
                   required
                 />
               </div>
@@ -317,70 +342,87 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-stone-900 hover:bg-black text-white text-sm font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-stone-950 text-sm font-black py-3 rounded-xl shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
             >
-              <span>{loading ? "Authenticating..." : "Sign in to Admin Dashboard"}</span>
+              <span>{loading ? "Verifying Credentials & Clearance..." : "Authenticate Judicial Session"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Quick 1-Click Evaluation / Demo Access */}
-          <div className="pt-4 border-t border-stone-100 space-y-3">
-            <div className="text-center">
-              <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">
-                Evaluation & Staging Access
+          {/* Quick-Access Authorized Personnel Section */}
+          <div className="pt-4 border-t border-stone-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                Pre-Configured Authority Access
               </span>
+              <span className="text-[9px] text-emerald-400 font-mono">Direct Clearance</span>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <button
                 type="button"
                 onClick={handleQuickLoginTalha}
-                className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-600 hover:to-amber-600 text-stone-950 font-black text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                className="w-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-between px-3.5 cursor-pointer shadow-xs"
               >
-                <Shield className="w-4 h-4 text-stone-950 fill-stone-950" />
-                <span>👑 1-Click Login: talha@pixheads.com (Super Admin)</span>
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  <span className="font-black text-amber-300">Talha (Super Admin)</span>
+                </div>
+                <span className="text-[10px] font-mono text-amber-400/80 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
+                  Root Authority
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={handleQuickDemoSuperAdmin}
-                className="w-full bg-stone-900 hover:bg-black text-amber-300 border border-amber-500/40 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                className="w-full bg-stone-950 hover:bg-stone-800/80 border border-stone-800 text-stone-300 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-between px-3.5 cursor-pointer"
               >
-                <Shield className="w-4 h-4 text-amber-400" />
-                <span>⚡ One-Click Super Admin Login (superadmin@ukil.com)</span>
+                <div className="flex items-center gap-2">
+                  <Shield className="w-3.5 h-3.5 text-stone-400" />
+                  <span>Chief Registrar (Super Admin)</span>
+                </div>
+                <span className="text-[10px] font-mono text-stone-500">
+                  superadmin@ukil.com
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={handleQuickDemoAdmin}
-                className="w-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="w-full bg-stone-950 hover:bg-stone-800/80 border border-stone-800 text-stone-300 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-between px-3.5 cursor-pointer"
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>⚡ One-Click Full Access Admin Login (admin@ukil.com)</span>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Operations Director (Full Access)</span>
+                </div>
+                <span className="text-[10px] font-mono text-stone-500">
+                  admin@ukil.com
+                </span>
               </button>
             </div>
 
-            <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl text-left space-y-1.5 text-xs">
-              <div className="text-[11px] font-bold text-amber-950 flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-amber-700" />
-                <span>Configured Super Admin Credentials:</span>
+            {/* Credentials Card */}
+            <div className="p-3 bg-stone-950/80 border border-amber-500/20 rounded-2xl text-left space-y-1.5 text-xs">
+              <div className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
+                <span>Your Super Admin Login Credentials:</span>
               </div>
-              <div className="font-mono text-[11px] text-stone-800 space-y-0.5">
-                <div>Email: <span className="font-bold text-stone-950">talha@pixheads.com</span></div>
-                <div>Password: <span className="font-bold text-stone-950">Talha@2026</span></div>
+              <div className="font-mono text-[11px] text-stone-300 space-y-0.5 bg-stone-900/60 p-2 rounded-xl border border-stone-800">
+                <div>Email: <span className="font-bold text-amber-300 select-all">talha@pixheads.com</span></div>
+                <div>Password: <span className="font-bold text-amber-300 select-all">Talha@2026</span></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Back link */}
-        <div className="text-center">
+        {/* Exit link back to public portal */}
+        <div className="text-center pt-2">
           <Link
             href="/"
-            className="text-xs font-semibold text-stone-500 hover:text-stone-900 transition-colors inline-flex items-center gap-1.5"
+            className="text-xs font-semibold text-stone-400 hover:text-white transition-colors inline-flex items-center gap-1.5"
           >
-            <Scale className="w-3.5 h-3.5 text-brand-coral" /> Return to Public Portal
+            <Scale className="w-3.5 h-3.5 text-brand-coral" /> Exit to Public Citizen Portal (ukil.com)
           </Link>
         </div>
 

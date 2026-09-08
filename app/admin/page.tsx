@@ -474,30 +474,124 @@ export default function AdminDashboardPage() {
 
   if (!adminUser && isLoading) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-3">
-        <div className="w-10 h-10 border-4 border-stone-800 border-t-brand-coral rounded-full animate-spin" />
-        <p className="text-xs font-semibold text-stone-500">Authenticating Judicial Administration Session...</p>
+      <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center space-y-3">
+        <div className="w-10 h-10 border-4 border-stone-800 border-t-amber-400 rounded-full animate-spin" />
+        <p className="text-xs font-semibold text-stone-400 font-mono">Authenticating Judicial Administration Session...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="min-h-screen bg-stone-100 flex flex-col w-full selection:bg-amber-400 selection:text-stone-950">
       
-      {/* Top Administrative Header */}
-      <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-stone-800 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-coral to-red-600 flex items-center justify-center text-white shadow-coral shrink-0 font-black text-2xl">
-              <Shield className="w-8 h-8" />
+      {/* 1. DEDICATED EXECUTIVE COMMAND TOPBAR (STANDALONE ADMIN UI - NO PUBLIC WEBSITE MENU) */}
+      <header className="sticky top-0 z-40 bg-stone-950 text-white border-b border-stone-800 shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          
+          {/* Brand Identity */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 border border-amber-400/40 flex items-center justify-center text-stone-950 shadow-md shrink-0">
+              <Shield className="w-6 h-6 fill-stone-950" />
             </div>
             <div>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-sm tracking-tight text-white uppercase">
+                  Ukil Judicial Command
+                </span>
+                <span className="hidden sm:inline-block bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black px-2 py-0.2 rounded-full uppercase tracking-wider">
+                  Admin Console
+                </span>
+              </div>
+              <div className="text-[10px] text-stone-400 font-medium hidden sm:block">
+                Platform Governance & Advocate KYC Oversight
+              </div>
+            </div>
+          </div>
+
+          {/* Center Telemetry Badges */}
+          <div className="hidden lg:flex items-center gap-3 text-[11px] font-mono text-stone-300 bg-stone-900/90 px-3.5 py-1.5 rounded-full border border-stone-800">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Supabase Connected</span>
+            </span>
+            <span className="text-stone-700">•</span>
+            <span className="flex items-center gap-1 text-amber-400">
+              <Lock className="w-3 h-3 text-amber-400" />
+              <span>RBAC Policy: Enforced</span>
+            </span>
+          </div>
+
+          {/* Right Actions & Operator Identity */}
+          <div className="flex items-center gap-3">
+            {/* DB Sync */}
+            <button
+              onClick={() => {
+                loadPlatformData();
+                DataService.syncFromSupabase().then(() => {
+                  loadPlatformData();
+                  notifyAction("Platform data synchronized with Supabase!");
+                });
+              }}
+              title="Synchronize data with remote database"
+              className="bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-stone-800 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Sync DB</span>
+            </button>
+
+            {/* External public link */}
+            <Link
+              href="/"
+              target="_blank"
+              title="Open public citizen portal in a new tab"
+              className="bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-stone-800 flex items-center gap-1.5 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Public Site</span>
+            </Link>
+
+            {/* Operator Chip */}
+            <div className="flex items-center gap-2 pl-2 border-l border-stone-800">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-black text-xs shrink-0">
+                {adminUser?.name?.charAt(0).toUpperCase() || "A"}
+              </div>
+              <div className="hidden md:block text-left leading-tight">
+                <div className="text-xs font-bold text-stone-200 truncate max-w-[130px]">
+                  {adminUser?.name || "Administrator"}
+                </div>
+                <div className="text-[10px] text-amber-400 font-bold">
+                  {adminUser?.isSuperAdmin ? "👑 Super Admin" : "🛡️ Full Admin"}
+                </div>
+              </div>
+            </div>
+
+            {/* Sign Out */}
+            <button
+              onClick={handleLogout}
+              title="Sign Out of Admin Console"
+              className="bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/30 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
+          </div>
+
+        </div>
+      </header>
+
+      {/* 2. MAIN EXECUTIVE WORKSPACE CANVAS */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        
+        {/* Top Operational Status Banner */}
+        <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-stone-800 space-y-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-                  Ukil Judicial & Platform Administration
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                  Platform Operations & Governance
                 </h1>
                 <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Ops
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Telemetry
                 </span>
                 {adminUser?.isSuperAdmin ? (
                   <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
@@ -513,83 +607,48 @@ export default function AdminDashboardPage() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-stone-400 mt-0.5">
-                Logged in as <span className="text-stone-200 font-semibold">{adminUser?.name || "Chief Administrator"}</span> ({adminUser?.email})
+              <p className="text-xs text-stone-400 mt-1">
+                Active Session: <span className="text-stone-200 font-semibold">{adminUser?.name || "Chief Administrator"}</span> ({adminUser?.email}) • Department: <span className="text-stone-300">{adminUser?.department || "Judicial Administration"}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={() => {
-                loadPlatformData();
-                DataService.syncFromSupabase().then(() => {
-                  loadPlatformData();
-                  notifyAction("Platform data synchronized with Supabase!");
-                });
-              }}
-              title="Sync with database"
-              className="bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold px-3 py-2 rounded-xl border border-stone-700 flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Sync DB</span>
-            </button>
+          {/* Global Impact Summary Counters */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 pt-3 border-t border-stone-800">
+            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
+              <div className="text-[10px] uppercase font-bold text-stone-400">Total Inquiries</div>
+              <div className="text-lg font-black text-white">{stats.totalQuestions || 0}</div>
+            </div>
 
-            <Link
-              href="/"
-              target="_blank"
-              className="bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold px-3 py-2 rounded-xl border border-stone-700 flex items-center gap-1.5 transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Public Feed</span>
-            </Link>
+            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
+              <div className="text-[10px] uppercase font-bold text-stone-400">Resolved Queries</div>
+              <div className="text-lg font-black text-emerald-400">{stats.resolvedQuestions || 0}</div>
+            </div>
 
-            <button
-              onClick={handleLogout}
-              className="bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
-            </button>
+            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
+              <div className="text-[10px] uppercase font-bold text-stone-400">Verified Advocates</div>
+              <div className="text-lg font-black text-brand-coral">{stats.verifiedLawyers || 0}</div>
+            </div>
+
+            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50 relative overflow-hidden">
+              {pendingKycCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full animate-ping" />
+              )}
+              <div className="text-[10px] uppercase font-bold text-amber-400">KYC Queue</div>
+              <div className="text-lg font-black text-amber-300">{pendingKycCount} Pending</div>
+            </div>
+
+            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
+              <div className="text-[10px] uppercase font-bold text-stone-400">Legal Answers</div>
+              <div className="text-lg font-black text-white">{stats.totalAnswers || 0}</div>
+            </div>
+
+            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
+              <div className="text-[10px] uppercase font-bold text-stone-400">Consultations</div>
+              <div className="text-lg font-black text-purple-400">{stats.totalConsultations || 0}</div>
+            </div>
           </div>
         </div>
-
-        {/* Global Impact Summary Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-stone-800">
-          <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-            <div className="text-[10px] uppercase font-bold text-stone-400">Total Inquiries</div>
-            <div className="text-lg font-black text-white">{stats.totalQuestions || 0}</div>
-          </div>
-
-          <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-            <div className="text-[10px] uppercase font-bold text-stone-400">Resolved Queries</div>
-            <div className="text-lg font-black text-emerald-400">{stats.resolvedQuestions || 0}</div>
-          </div>
-
-          <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-            <div className="text-[10px] uppercase font-bold text-stone-400">Verified Advocates</div>
-            <div className="text-lg font-black text-brand-coral">{stats.verifiedLawyers || 0}</div>
-          </div>
-
-          <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50 relative overflow-hidden">
-            {pendingKycCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full animate-ping" />
-            )}
-            <div className="text-[10px] uppercase font-bold text-amber-400">KYC Queue</div>
-            <div className="text-lg font-black text-amber-300">{pendingKycCount} Pending</div>
-          </div>
-
-          <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-            <div className="text-[10px] uppercase font-bold text-stone-400">Legal Answers</div>
-            <div className="text-lg font-black text-white">{stats.totalAnswers || 0}</div>
-          </div>
-
-          <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-            <div className="text-[10px] uppercase font-bold text-stone-400">Consultations</div>
-            <div className="text-lg font-black text-purple-400">{stats.totalConsultations || 0}</div>
-          </div>
-        </div>
-      </div>
 
       {/* Action Notification Banner */}
       {actionSuccessMsg && (
@@ -1821,6 +1880,23 @@ export default function AdminDashboardPage() {
 
         </div>
       )}
+
+      </main>
+
+      {/* 3. DEDICATED ADMIN EXECUTIVE FOOTER */}
+      <footer className="mt-auto bg-stone-900 border-t border-stone-800 text-stone-400 text-xs py-5 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
+          <div className="flex items-center gap-2 text-stone-300 font-medium">
+            <Shield className="w-3.5 h-3.5 text-amber-400" />
+            <span>Ukil Judicial & Administrative Console</span>
+            <span className="text-stone-600">•</span>
+            <span className="text-stone-400">Restricted Internal System</span>
+          </div>
+          <div className="text-stone-500 font-mono">
+            Real-time audit logging active • Super Admin Invariant strictly enforced • Version 3.4
+          </div>
+        </div>
+      </footer>
 
       {/* ========================================================================= */}
       {/* DETAILED KYC INSPECTION DRAWER / MODAL */}
