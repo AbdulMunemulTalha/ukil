@@ -163,6 +163,115 @@ export function saveStoredCategories(categories: Category[]) {
   } catch (e) {}
 }
 
+export interface AdminPermissions {
+  manage_kyc: boolean;
+  manage_questions: boolean;
+  manage_answers: boolean;
+  manage_consultations: boolean;
+  manage_categories: boolean;
+  view_analytics: boolean;
+  manage_admins: boolean;
+}
+
+export type AdminRole = 'super_admin' | 'admin' | 'moderator';
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: AdminRole;
+  isSuperAdmin: boolean;
+  permissions: AdminPermissions;
+  department?: string;
+  status: 'active' | 'suspended';
+  addedBy?: string;
+  createdAt: string;
+  lastLogin?: string;
+}
+
+const DEFAULT_ADMIN_USERS: AdminUser[] = [
+  {
+    id: 'admin-super-01',
+    email: 'superadmin@ukil.com',
+    name: 'Chief Registrar (Super Admin)',
+    role: 'super_admin',
+    isSuperAdmin: true,
+    permissions: {
+      manage_kyc: true,
+      manage_questions: true,
+      manage_answers: true,
+      manage_consultations: true,
+      manage_categories: true,
+      view_analytics: true,
+      manage_admins: true,
+    },
+    department: 'Supreme Council & Judicial Oversight',
+    status: 'active',
+    addedBy: 'Root System',
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'admin-super-02',
+    email: 'md72905talha@gmail.com',
+    name: 'S M Munemul Islam (Super Admin)',
+    role: 'super_admin',
+    isSuperAdmin: true,
+    permissions: {
+      manage_kyc: true,
+      manage_questions: true,
+      manage_answers: true,
+      manage_consultations: true,
+      manage_categories: true,
+      view_analytics: true,
+      manage_admins: true,
+    },
+    department: 'Executive Judicial Authority',
+    status: 'active',
+    addedBy: 'Root System',
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'admin-full-01',
+    email: 'admin@ukil.com',
+    name: 'Operations Director (Full Access Admin)',
+    role: 'admin',
+    isSuperAdmin: false,
+    permissions: {
+      manage_kyc: true,
+      manage_questions: true,
+      manage_answers: true,
+      manage_consultations: true,
+      manage_categories: true,
+      view_analytics: true,
+      manage_admins: true,
+    },
+    department: 'Platform Operations & Moderation',
+    status: 'active',
+    addedBy: 'Chief Registrar (Super Admin)',
+    createdAt: '2026-01-05',
+  },
+];
+
+const LOCAL_STORAGE_KEY_ADMIN_USERS = 'ukil_admin_users_data_v3';
+
+export function getStoredAdminUsers(): AdminUser[] {
+  if (typeof window === 'undefined') return DEFAULT_ADMIN_USERS;
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_ADMIN_USERS);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {}
+  return DEFAULT_ADMIN_USERS;
+}
+
+export function saveStoredAdminUsers(users: AdminUser[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY_ADMIN_USERS, JSON.stringify(users));
+  } catch (e) {}
+}
+
 // Data Access Service (Hybrid: Live Supabase with LocalStorage offline/caching)
 export const DataService = {
   // Get all categories
@@ -291,6 +400,9 @@ export const DataService = {
 
       // 5. Fetch and synchronize live Platform Impact Stats
       await this.getPlatformStatsAsync();
+
+      // 6. Fetch and synchronize Admin Users
+      await this.syncAdminUsersFromSupabase();
     } catch (err) {
       console.warn('Sync from Supabase failed, using local cache:', err);
     }
@@ -1173,6 +1285,252 @@ export const DataService = {
       totalConsultations: consultations.length,
       pendingConsultations: consultations.filter((c) => c.status === 'pending').length,
     };
+  },
+
+  // ==========================================
+  // SUPER ADMIN & RBAC ADMIN USER MANAGEMENT
+  // ==========================================
+
+  getAdminUsers(): AdminUser[] {
+    return getStoredAdminUsers();
+  },
+
+  getAdminUserByEmail(email: string): AdminUser | undefined {
+    const users = getStoredAdminUsers();
+    return users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  },
+
+  async syncAdminUsersFromSupabase(): Promise<AdminUser[]> {
+    const supabase = createClient();
+    if (!supabase) return getStoredAdminUsers();
+
+    try {
+      const { data, error } = await (supabase
+        .from('admin_users' as any) as any)
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        const mapped: AdminUser[] = data.map((d: any) => ({
+          id: d.id,
+          email: d.email,
+          name: d.name,
+          role: (d.role as 'super_admin' | 'admin' | 'moderator') || 'admin',
+          isSuperAdmin: Boolean(d.is_super_admin),
+          permissions: {
+            manage_kyc: Boolean(d.permissions?.manage_kyc),
+            manage_questions: Boolean(d.permissions?.manage_questions),
+            manage_answers: Boolean(d.permissions?.manage_answers),
+            manage_consultations: Boolean(d.permissions?.manage_consultations),
+            manage_categories: Boolean(d.permissions?.manage_categories),
+            view_analytics: Boolean(d.permissions?.view_analytics),
+            manage_admins: Boolean(d.permissions?.manage_admins),
+          },
+          department: d.department || 'Administration',
+          status: (d.status as 'active' | 'suspended') || 'active',
+          addedBy: d.added_by || 'Root System',
+          createdAt: d.created_at ? new Date(d.created_at).toLocaleDateString() : 'Recently',
+          lastLogin: d.last_login ? new Date(d.last_login).toLocaleDateString() : undefined,
+        }));
+
+        saveStoredAdminUsers(mapped);
+        return mapped;
+      }
+    } catch (e) {
+      console.warn('Error fetching admin users from Supabase:', e);
+    }
+    return getStoredAdminUsers();
+  },
+
+  addAdminUser(
+    newAdmin: Omit<AdminUser, 'id' | 'createdAt'>,
+    operatorEmail: string
+  ): { success: boolean; user?: AdminUser; error?: string } {
+    const users = getStoredAdminUsers();
+    const operator = users.find((u) => u.email.toLowerCase() === operatorEmail.toLowerCase());
+
+    // Authorization check: Operator must be super_admin or have manage_admins permission
+    if (!operator || (!operator.isSuperAdmin && !operator.permissions.manage_admins)) {
+      return {
+        success: false,
+        error: 'Access Denied: You do not possess privileges to add administrative users.',
+      };
+    }
+
+    // Protection rule: Only a Super Admin can create another Super Admin
+    if ((newAdmin.isSuperAdmin || newAdmin.role === 'super_admin') && !operator.isSuperAdmin) {
+      return {
+        success: false,
+        error: 'Access Denied: Only a Super Admin can grant Super Admin privileges or create another Super Admin.',
+      };
+    }
+
+    // Check duplicate email
+    if (users.some((u) => u.email.toLowerCase() === newAdmin.email.toLowerCase())) {
+      return {
+        success: false,
+        error: 'An administrator with this email address already exists.',
+      };
+    }
+
+    const created: AdminUser = {
+      ...newAdmin,
+      id: `admin-${Date.now()}`,
+      createdAt: new Date().toLocaleDateString(),
+      addedBy: operator.name || operator.email,
+    };
+
+    const updated = [...users, created];
+    saveStoredAdminUsers(updated);
+
+    // Sync to Supabase
+    const supabase = createClient();
+    if (supabase) {
+      (supabase
+        .from('admin_users' as any) as any)
+        .insert({
+          email: created.email,
+          name: created.name,
+          role: created.role,
+          is_super_admin: created.isSuperAdmin,
+          permissions: created.permissions,
+          department: created.department || 'Administration',
+          status: created.status,
+          added_by: created.addedBy,
+        })
+        .then(({ error }: any) => {
+          if (error) console.error('Error inserting admin user into Supabase:', error);
+        });
+    }
+
+    return { success: true, user: created };
+  },
+
+  updateAdminUser(
+    id: string,
+    updates: Partial<AdminUser>,
+    operatorEmail: string
+  ): { success: boolean; user?: AdminUser; error?: string } {
+    const users = getStoredAdminUsers();
+    const operator = users.find((u) => u.email.toLowerCase() === operatorEmail.toLowerCase());
+    const target = users.find((u) => u.id === id);
+
+    if (!operator || (!operator.isSuperAdmin && !operator.permissions.manage_admins)) {
+      return {
+        success: false,
+        error: 'Access Denied: You do not possess privileges to manage administrator roles.',
+      };
+    }
+
+    if (!target) {
+      return { success: false, error: 'Administrator user not found.' };
+    }
+
+    // Protection rule: If target is Super Admin and operator is NOT Super Admin
+    if (target.isSuperAdmin && !operator.isSuperAdmin) {
+      return {
+        success: false,
+        error: 'Access Denied: Super Admin is protected by root authority. Only a Super Admin can reconfigure a Super Admin profile.',
+      };
+    }
+
+    // Protection rule: Non-super admin cannot elevate anyone to Super Admin
+    if ((updates.isSuperAdmin || updates.role === 'super_admin') && !operator.isSuperAdmin) {
+      return {
+        success: false,
+        error: 'Access Denied: Only a Super Admin can grant Super Admin privileges.',
+      };
+    }
+
+    let updatedUser: AdminUser | undefined;
+    const updated = users.map((u) => {
+      if (u.id === id) {
+        updatedUser = { ...u, ...updates };
+        return updatedUser;
+      }
+      return u;
+    });
+
+    if (updatedUser) {
+      saveStoredAdminUsers(updated);
+
+      const supabase = createClient();
+      if (supabase && id.length > 30) {
+        const sbPayload: any = {};
+        if (updates.name) sbPayload.name = updates.name;
+        if (updates.role) sbPayload.role = updates.role;
+        if (updates.isSuperAdmin !== undefined) sbPayload.is_super_admin = updates.isSuperAdmin;
+        if (updates.permissions) sbPayload.permissions = updates.permissions;
+        if (updates.department) sbPayload.department = updates.department;
+        if (updates.status) sbPayload.status = updates.status;
+
+        (supabase
+          .from('admin_users' as any) as any)
+          .update(sbPayload)
+          .eq('id', id)
+          .then(({ error }: any) => {
+            if (error) console.error('Error updating admin user in Supabase:', error);
+          });
+      }
+    }
+
+    return { success: true, user: updatedUser };
+  },
+
+  deleteAdminUser(
+    targetId: string,
+    operatorEmail: string
+  ): { success: boolean; error?: string } {
+    const users = getStoredAdminUsers();
+    const operator = users.find((u) => u.email.toLowerCase() === operatorEmail.toLowerCase());
+    const target = users.find((u) => u.id === targetId);
+
+    if (!operator || (!operator.isSuperAdmin && !operator.permissions.manage_admins)) {
+      return {
+        success: false,
+        error: 'Access Denied: You do not possess privileges to delete administrator users.',
+      };
+    }
+
+    if (!target) {
+      return { success: false, error: 'Administrator user not found.' };
+    }
+
+    // CRITICAL SECURITY INVARIANT: NO OTHER ADMIN CAN REMOVE SUPER ADMIN!
+    // ONLY SUPER ADMIN CAN REMOVE SUPER ADMIN!
+    if (target.isSuperAdmin || target.role === 'super_admin') {
+      if (!operator.isSuperAdmin) {
+        return {
+          success: false,
+          error: 'Access Denied: Super Admin is protected by root authority. No other administrator (even with full access) can remove the Super Admin.',
+        };
+      }
+
+      // Check if this is the last Super Admin
+      const superAdmins = users.filter((u) => u.isSuperAdmin || u.role === 'super_admin');
+      if (superAdmins.length <= 1) {
+        return {
+          success: false,
+          error: 'Action Denied: Cannot remove the last remaining Super Admin on the platform.',
+        };
+      }
+    }
+
+    const updated = users.filter((u) => u.id !== targetId);
+    saveStoredAdminUsers(updated);
+
+    const supabase = createClient();
+    if (supabase && targetId.length > 30) {
+      (supabase
+        .from('admin_users' as any) as any)
+        .delete()
+        .eq('id', targetId)
+        .then(({ error }: any) => {
+          if (error) console.error('Error deleting admin user from Supabase:', error);
+        });
+    }
+
+    return { success: true };
   },
 };
 
