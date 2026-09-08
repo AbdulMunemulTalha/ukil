@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Sparkles, Scale, ShieldCheck, Clock, Users, ArrowRight, MessageSquareCheck, PlusCircle } from "lucide-react";
-import { MOCK_QUESTIONS, MOCK_CATEGORIES, MOCK_PROFESSIONALS, Question, Professional } from "../lib/mockData";
+import { MOCK_QUESTIONS, MOCK_CATEGORIES, Question, Professional } from "../lib/mockData";
 import { DataService, PlatformStats } from "../lib/db";
 import QuestionCard from "../components/QuestionCard";
 import SubmitModal from "../components/SubmitModal";
@@ -200,41 +200,60 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {(professionals.length > 0 ? professionals.slice(0, 3) : MOCK_PROFESSIONALS).map((prof) => (
-            <div key={prof.id} className="bg-white border border-stone-200 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-coral transition-all">
-              <div className="flex items-center gap-3">
-                <img src={prof.avatar} alt={prof.name} className="w-14 h-14 rounded-full object-cover border-2 border-brand-coral" />
-                <div>
-                  <div className="flex items-center gap-1 font-bold text-stone-900 text-base">
-                    <span>{prof.name}</span>
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 fill-emerald-100" />
+        {professionals.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {professionals.slice(0, 3).map((prof) => (
+              <div key={prof.id} className="bg-white border border-stone-200 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-coral transition-all">
+                <div className="flex items-center gap-3">
+                  <img src={prof.avatar} alt={prof.name} className="w-14 h-14 rounded-full object-cover border-2 border-brand-coral" />
+                  <div>
+                    <div className="flex items-center gap-1 font-bold text-stone-900 text-base">
+                      <span>{prof.name}</span>
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 fill-emerald-100" />
+                    </div>
+                    <div className="text-xs text-brand-coral font-semibold">{prof.role}</div>
+                    <div className="text-xs text-stone-500">{prof.location}</div>
                   </div>
-                  <div className="text-xs text-brand-coral font-semibold">{prof.role}</div>
-                  <div className="text-xs text-stone-500">{prof.location}</div>
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                  {prof.specialization.map((spec, i) => (
+                    <span key={i} className="bg-stone-100 text-stone-700 text-[11px] font-medium px-2 py-0.5 rounded">
+                      {spec}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-stone-100 text-xs font-semibold">
+                  <span className="text-amber-600">⭐ {prof.rating} ({prof.reviewCount} Reviews)</span>
+                  <Link
+                    href={`/professionals/${prof.id}`}
+                    className="bg-brand-light text-brand-coral hover:bg-brand-coral hover:text-white px-3 py-1.5 rounded-lg border border-brand-border transition-colors"
+                  >
+                    View Profile
+                  </Link>
                 </div>
               </div>
-
-              <div className="flex flex-wrap gap-1">
-                {prof.specialization.map((spec, i) => (
-                  <span key={i} className="bg-stone-100 text-stone-700 text-[11px] font-medium px-2 py-0.5 rounded">
-                    {spec}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-stone-100 text-xs font-semibold">
-                <span className="text-amber-600">⭐ {prof.rating} ({prof.reviewCount} Reviews)</span>
-                <Link
-                  href={`/professionals/${prof.id}`}
-                  className="bg-brand-light text-brand-coral hover:bg-brand-coral hover:text-white px-3 py-1.5 rounded-lg border border-brand-border transition-colors"
-                >
-                  View Profile
-                </Link>
-              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white border border-stone-200 rounded-2xl p-8 text-center max-w-xl mx-auto space-y-3 shadow-sm">
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-6 h-6" />
             </div>
-          ))}
-        </div>
+            <h3 className="font-bold text-stone-900 text-base">No Verified Lawyers Currently Listed</h3>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              We require mandatory Bar Council KYC verification before advocates appear in our public directory. Licensed advocates can register below to assist citizens.
+            </p>
+            <Link
+              href="/signup/lawyer"
+              className="inline-flex items-center gap-1.5 bg-brand-coral hover:bg-brand-hover text-white text-xs font-bold px-4 py-2 rounded-xl shadow-coral transition-colors"
+            >
+              <span>Join as an Advocate</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* Embedded No-Signup Submit Modal */}

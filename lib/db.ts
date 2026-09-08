@@ -2,9 +2,9 @@ import { Question, Answer, Professional, Category, MOCK_QUESTIONS, MOCK_ANSWERS,
 import { createClient } from './supabase/client';
 import { getDefaultAvatar } from './avatar';
 
-const LOCAL_STORAGE_KEY_QUESTIONS = 'ukil_questions_data_v2';
-const LOCAL_STORAGE_KEY_ANSWERS = 'ukil_answers_data_v2';
-const LOCAL_STORAGE_KEY_CONSULTATIONS = 'ukil_consultations_data_v2';
+const LOCAL_STORAGE_KEY_QUESTIONS = 'ukil_questions_data_v3';
+const LOCAL_STORAGE_KEY_ANSWERS = 'ukil_answers_data_v3';
+const LOCAL_STORAGE_KEY_CONSULTATIONS = 'ukil_consultations_data_v3';
 
 export interface ConsultationRequest {
   id: string;
@@ -89,7 +89,7 @@ export function saveStoredConsultations(consultations: ConsultationRequest[]) {
   }
 }
 
-const LOCAL_STORAGE_KEY_PROFESSIONALS = 'ukil_professionals_data_v2';
+const LOCAL_STORAGE_KEY_PROFESSIONALS = 'ukil_professionals_data_v3';
 
 export function getStoredProfessionals(): Professional[] {
   if (typeof window === 'undefined') return MOCK_PROFESSIONALS;
@@ -116,12 +116,12 @@ export interface PlatformStats {
   avgAdviceTime: string;
 }
 
-const LOCAL_STORAGE_KEY_STATS = 'ukil_platform_stats_v2';
+const LOCAL_STORAGE_KEY_STATS = 'ukil_platform_stats_v3';
 
 const DEFAULT_PLATFORM_STATS: PlatformStats = {
-  issuesResolved: 2,
-  verifiedLawyers: 4,
-  anonymousPercentage: 50,
+  issuesResolved: 0,
+  verifiedLawyers: 0,
+  anonymousPercentage: 100,
   avgAdviceTime: '< 4 Hours',
 };
 
@@ -143,7 +143,7 @@ export function saveStoredPlatformStats(stats: PlatformStats) {
   } catch (e) {}
 }
 
-const LOCAL_STORAGE_KEY_CATEGORIES = 'ukil_categories_data_v2';
+const LOCAL_STORAGE_KEY_CATEGORIES = 'ukil_categories_data_v3';
 
 export function getStoredCategories(): Category[] {
   if (typeof window === 'undefined') return MOCK_CATEGORIES;
@@ -216,7 +216,7 @@ export const DataService = {
         .from('answers')
         .select('*, profiles(*)');
 
-      if (!aErr && dbAnswers && dbAnswers.length > 0) {
+      if (!aErr && dbAnswers) {
         const mappedAnswers: Answer[] = dbAnswers.map((a: any) => {
           const prof = a.profiles;
           return {
@@ -243,7 +243,7 @@ export const DataService = {
         .select('*, profiles(full_name)')
         .order('created_at', { ascending: false });
 
-      if (!cErr && dbConsults && dbConsults.length > 0) {
+      if (!cErr && dbConsults) {
         const mappedConsults: ConsultationRequest[] = dbConsults.map((c: any) => ({
           id: c.id,
           professionalId: c.professional_id,
@@ -264,7 +264,7 @@ export const DataService = {
         .select('*')
         .eq('role', 'professional');
 
-      if (!pErr && dbProfs && dbProfs.length > 0) {
+      if (!pErr && dbProfs) {
         const mappedProfs: Professional[] = dbProfs.map((p: any) => ({
           id: p.id,
           name: p.full_name,
@@ -681,7 +681,7 @@ export const DataService = {
 
   getProfessionalById(id: string): Professional | undefined {
     const profs = getStoredProfessionals();
-    return profs.find((p) => p.id === id) || profs[0];
+    return profs.find((p) => p.id === id);
   },
 
   // Update lawyer profile locally and sync to cache

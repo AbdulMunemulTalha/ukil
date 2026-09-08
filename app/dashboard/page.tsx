@@ -35,7 +35,7 @@ import {
   EyeOff,
   AlertTriangle,
 } from "lucide-react";
-import { Question, Answer, Professional, MOCK_CATEGORIES, MOCK_PROFESSIONALS } from "../../lib/mockData";
+import { Question, Answer, Professional, MOCK_CATEGORIES } from "../../lib/mockData";
 import { DataService, ConsultationRequest } from "../../lib/db";
 import { createClient } from "../../lib/supabase/client";
 import { getDefaultAvatar, uploadAvatarToSupabase, fileToDataUrl } from "../../lib/avatar";

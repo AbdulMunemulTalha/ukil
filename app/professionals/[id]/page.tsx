@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShieldCheck, Star, MapPin, Calendar, Clock, CheckCircle2, MessageSquare, ArrowLeft, Send, X, Loader2 } from "lucide-react";
-import { MOCK_QUESTIONS, Professional } from "../../../lib/mockData";
+import { Question, Professional } from "../../../lib/mockData";
 import { DataService } from "../../../lib/db";
 import { createClient } from "../../../lib/supabase/client";
 import { getDefaultAvatar } from "../../../lib/avatar";
@@ -15,6 +15,7 @@ export default function ProfessionalDetailPage({ params }: { params: { id: strin
     return list.find((p) => p.id === params.id) || null;
   });
   const [isLoading, setIsLoading] = useState(!prof);
+  const [contributedQuestions, setContributedQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
     DataService.syncFromSupabase().then(async () => {
@@ -56,6 +57,17 @@ export default function ProfessionalDetailPage({ params }: { params: { id: strin
       }
     });
   }, [params.id]);
+
+  useEffect(() => {
+    if (!prof) return;
+    const answers = DataService.getAnswers();
+    const answeredQIds = new Set(
+      answers.filter((a) => a.professionalId === prof.id).map((a) => a.questionId)
+    );
+    const allQuestions = DataService.getQuestions();
+    const matched = allQuestions.filter((q) => answeredQIds.has(q.id) || (q.trackingCode && answeredQIds.has(q.trackingCode)));
+    setContributedQuestions(matched);
+  }, [prof]);
 
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
@@ -175,11 +187,20 @@ export default function ProfessionalDetailPage({ params }: { params: { id: strin
           <span>Public Advice Contributed by {prof.name}</span>
         </h2>
 
-        <div className="space-y-4">
-          {MOCK_QUESTIONS.slice(0, 2).map((question) => (
-            <QuestionCard key={question.id} question={question} />
-          ))}
-        </div>
+        {contributedQuestions.length > 0 ? (
+          <div className="space-y-4">
+            {contributedQuestions.map((question) => (
+              <QuestionCard key={question.id} question={question} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white border border-stone-200 rounded-2xl p-8 text-center text-stone-500 space-y-1 shadow-sm">
+            <p className="text-sm font-semibold text-stone-700">No public legal advice published yet</p>
+            <p className="text-xs text-stone-500">
+              When {prof.name} provides guidance to public citizen inquiries, their verified responses will appear here.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Booking Modal */}
