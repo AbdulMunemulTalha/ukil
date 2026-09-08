@@ -38,7 +38,8 @@ import {
   Lock,
   Edit3,
   UserPlus,
-  ShieldAlert
+  ShieldAlert,
+  Menu
 } from "lucide-react";
 import { DataService, ConsultationRequest, AdminUser, AdminPermissions, AdminRole } from "../../lib/db";
 import { Professional, Question, Answer, Category } from "../../lib/mockData";
@@ -47,6 +48,7 @@ import { createClient } from "../../lib/supabase/client";
 export default function AdminDashboardPage() {
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [activeTab, setActiveTab] = useState<"kyc" | "questions" | "answers" | "consultations" | "categories" | "analytics" | "admins">("kyc");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Data states
   const [professionals, setProfessionals] = useState<Professional[]>([]);
@@ -482,310 +484,581 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 flex flex-col w-full selection:bg-amber-400 selection:text-stone-950">
+    <div className="min-h-screen bg-[#F8FAFC] flex text-stone-900 selection:bg-amber-400 selection:text-stone-950 font-sans">
       
-      {/* 1. DEDICATED EXECUTIVE COMMAND TOPBAR (STANDALONE ADMIN UI - NO PUBLIC WEBSITE MENU) */}
-      <header className="sticky top-0 z-40 bg-stone-950 text-white border-b border-stone-800 shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          
-          {/* Brand Identity */}
+      {/* MOBILE BACKDROP */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-stone-950/80 backdrop-blur-xs z-40 lg:hidden animate-in fade-in"
+        />
+      )}
+
+      {/* ========================================================================= */}
+      {/* 1. LEFT ENTERPRISE NAVIGATION SIDEBAR (FIXED DESKTOP / SLIDE-OVER MOBILE) */}
+      {/* ========================================================================= */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-stone-950 border-r border-stone-800 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Sidebar Header */}
+        <div className="h-16 px-5 flex items-center justify-between border-b border-stone-800/80 bg-stone-950 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 border border-amber-400/40 flex items-center justify-center text-stone-950 shadow-md shrink-0">
-              <Shield className="w-6 h-6 fill-stone-950" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-stone-950 shadow-md shadow-amber-500/20 shrink-0">
+              <Shield className="w-5 h-5 fill-stone-950" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-sm tracking-tight text-white uppercase">
-                  Ukil Judicial Command
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-sm tracking-wider text-white uppercase font-mono">
+                  UKIL COMMAND
                 </span>
-                <span className="hidden sm:inline-block bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black px-2 py-0.2 rounded-full uppercase tracking-wider">
-                  Admin Console
+                <span className="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9px] font-extrabold px-1.5 py-0.2 rounded font-mono">
+                  v3.4
                 </span>
               </div>
-              <div className="text-[10px] text-stone-400 font-medium hidden sm:block">
-                Platform Governance & Advocate KYC Oversight
-              </div>
+              <div className="text-[10px] text-stone-400 font-medium">Judicial Administration OS</div>
             </div>
           </div>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="lg:hidden text-stone-400 hover:text-white p-1 rounded-lg hover:bg-stone-900 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Center Telemetry Badges */}
-          <div className="hidden lg:flex items-center gap-3 text-[11px] font-mono text-stone-300 bg-stone-900/90 px-3.5 py-1.5 rounded-full border border-stone-800">
+        {/* Current Active Operator Profile Card */}
+        <div className="p-3.5 mx-3 mt-3 rounded-2xl bg-stone-900/90 border border-stone-800 shadow-inner shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-black text-xs">
+                {adminUser?.name?.charAt(0).toUpperCase() || "A"}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-stone-950 animate-pulse" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold text-stone-100 truncate">
+                {adminUser?.name || "Administrator"}
+              </div>
+              <div className="text-[10px] text-stone-400 truncate">{adminUser?.email}</div>
+            </div>
+          </div>
+          <div className="mt-2.5 pt-2 border-t border-stone-800/60 flex items-center justify-between">
+            {adminUser?.isSuperAdmin ? (
+              <span className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+                👑 Super Admin
+              </span>
+            ) : canManageAdmins ? (
+              <span className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                ⚡ Full Admin
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 bg-stone-800 text-stone-300 text-[10px] font-medium px-2 py-0.5 rounded-md">
+                🛡️ Scoped Moderator
+              </span>
+            )}
+            <span className="text-[10px] text-stone-400 font-mono">
+              Dept: {adminUser?.department?.split(" ")[0] || "Legal"}
+            </span>
+          </div>
+        </div>
+
+        {/* Scrollable Navigation Groups */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 text-xs">
+          
+          {/* Group: Governance & Verification */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] font-black uppercase tracking-widest text-stone-500">
+              Governance & Verification
+            </div>
+
+            {canManageKyc && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("kyc");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
+                  activeTab === "kyc"
+                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    : "text-stone-300 hover:text-white hover:bg-stone-900"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className={`w-4 h-4 ${activeTab === "kyc" ? "text-stone-950" : "text-amber-400"}`} />
+                  <span>Advocate KYC Hub</span>
+                </div>
+                {pendingKycCount > 0 && (
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                    activeTab === "kyc"
+                      ? "bg-stone-950 text-amber-300"
+                      : "bg-amber-500 text-stone-950 animate-pulse"
+                  }`}>
+                    {pendingKycCount}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* Group: Citizen Services */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] font-black uppercase tracking-widest text-stone-500">
+              Citizen Services & Moderation
+            </div>
+
+            {canManageQuestions && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("questions");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
+                  activeTab === "questions"
+                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    : "text-stone-300 hover:text-white hover:bg-stone-900"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <MessageSquare className={`w-4 h-4 ${activeTab === "questions" ? "text-stone-950" : "text-emerald-400"}`} />
+                  <span>Legal Inquiries</span>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                  activeTab === "questions" ? "bg-stone-950 text-white font-bold" : "bg-stone-800 text-stone-400"
+                }`}>
+                  {questions.length}
+                </span>
+              </button>
+            )}
+
+            {canManageAnswers && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("answers");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
+                  activeTab === "answers"
+                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    : "text-stone-300 hover:text-white hover:bg-stone-900"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Scale className={`w-4 h-4 ${activeTab === "answers" ? "text-stone-950" : "text-blue-400"}`} />
+                  <span>Advocate Advice</span>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                  activeTab === "answers" ? "bg-stone-950 text-white font-bold" : "bg-stone-800 text-stone-400"
+                }`}>
+                  {answers.length}
+                </span>
+              </button>
+            )}
+
+            {canManageConsultations && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("consultations");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
+                  activeTab === "consultations"
+                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    : "text-stone-300 hover:text-white hover:bg-stone-900"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Calendar className={`w-4 h-4 ${activeTab === "consultations" ? "text-stone-950" : "text-purple-400"}`} />
+                  <span>Consultations</span>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                  activeTab === "consultations" ? "bg-stone-950 text-white font-bold" : "bg-stone-800 text-stone-400"
+                }`}>
+                  {consultations.length}
+                </span>
+              </button>
+            )}
+          </div>
+
+          {/* Group: Platform Catalog & Telemetry */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] font-black uppercase tracking-widest text-stone-500">
+              Operations & Catalog
+            </div>
+
+            {canManageCategories && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("categories");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
+                  activeTab === "categories"
+                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    : "text-stone-300 hover:text-white hover:bg-stone-900"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Layers className={`w-4 h-4 ${activeTab === "categories" ? "text-stone-950" : "text-amber-400"}`} />
+                  <span>Practice Categories</span>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                  activeTab === "categories" ? "bg-stone-950 text-white font-bold" : "bg-stone-800 text-stone-400"
+                }`}>
+                  {categories.length}
+                </span>
+              </button>
+            )}
+
+            {canViewAnalytics && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("analytics");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
+                  activeTab === "analytics"
+                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    : "text-stone-300 hover:text-white hover:bg-stone-900"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 className={`w-4 h-4 ${activeTab === "analytics" ? "text-stone-950" : "text-teal-400"}`} />
+                  <span>Platform Health & KPIs</span>
+                </div>
+              </button>
+            )}
+          </div>
+
+          {/* Group: Security & RBAC */}
+          {canManageAdmins && (
+            <div className="space-y-1">
+              <div className="px-3 text-[10px] font-black uppercase tracking-widest text-stone-500">
+                Security & Team Access
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("admins");
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
+                  activeTab === "admins"
+                    ? "bg-amber-400 text-stone-950 shadow-md shadow-amber-400/10 font-extrabold"
+                    : "text-stone-300 hover:text-white hover:bg-stone-900"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Users className={`w-4 h-4 ${activeTab === "admins" ? "text-stone-950" : "text-brand-coral"}`} />
+                  <span>Admin Team & RBAC</span>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                  activeTab === "admins" ? "bg-stone-950 text-white" : "bg-brand-coral/20 text-brand-coral"
+                }`}>
+                  {adminUsers.length}
+                </span>
+              </button>
+            </div>
+          )}
+
+        </div>
+
+        {/* Sidebar Footer Controls */}
+        <div className="p-3 border-t border-stone-800 bg-stone-950 space-y-2 shrink-0">
+          <div className="flex items-center justify-between px-2 py-1 text-[11px] font-mono text-stone-400">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Supabase Connected</span>
             </span>
-            <span className="text-stone-700">•</span>
-            <span className="flex items-center gap-1 text-amber-400">
-              <Lock className="w-3 h-3 text-amber-400" />
-              <span>RBAC Policy: Enforced</span>
-            </span>
+            <span className="text-[10px] text-stone-400">REST v1</span>
           </div>
 
-          {/* Right Actions & Operator Identity */}
-          <div className="flex items-center gap-3">
-            {/* DB Sync */}
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => {
                 loadPlatformData();
                 DataService.syncFromSupabase().then(() => {
                   loadPlatformData();
-                  notifyAction("Platform data synchronized with Supabase!");
+                  notifyAction("Database synchronized with Supabase!");
                 });
               }}
-              title="Synchronize data with remote database"
-              className="bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-stone-800 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-[11px] font-bold border border-stone-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Sync DB</span>
+              <RefreshCw className="w-3 h-3 text-amber-400" />
+              <span>Sync DB</span>
             </button>
 
-            {/* External public link */}
             <Link
               href="/"
               target="_blank"
-              title="Open public citizen portal in a new tab"
-              className="bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-stone-800 flex items-center gap-1.5 transition-colors"
+              className="px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-[11px] font-bold border border-stone-800 flex items-center justify-center gap-1.5 transition-colors"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Public Site</span>
+              <ExternalLink className="w-3 h-3 text-stone-400" />
+              <span>Live Site</span>
             </Link>
-
-            {/* Operator Chip */}
-            <div className="flex items-center gap-2 pl-2 border-l border-stone-800">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-black text-xs shrink-0">
-                {adminUser?.name?.charAt(0).toUpperCase() || "A"}
-              </div>
-              <div className="hidden md:block text-left leading-tight">
-                <div className="text-xs font-bold text-stone-200 truncate max-w-[130px]">
-                  {adminUser?.name || "Administrator"}
-                </div>
-                <div className="text-[10px] text-amber-400 font-bold">
-                  {adminUser?.isSuperAdmin ? "👑 Super Admin" : "🛡️ Full Admin"}
-                </div>
-              </div>
-            </div>
-
-            {/* Sign Out */}
-            <button
-              onClick={handleLogout}
-              title="Sign Out of Admin Console"
-              className="bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/30 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </button>
           </div>
 
+          <button
+            onClick={handleLogout}
+            className="w-full px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/30 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out Session</span>
+          </button>
         </div>
-      </header>
+      </aside>
 
-      {/* 2. MAIN EXECUTIVE WORKSPACE CANVAS */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* ========================================================================= */}
+      {/* 2. MAIN WORKSPACE CANVAS (EXPANSIVE RIGHT CONTENT) */}
+      {/* ========================================================================= */}
+      <div className="flex-1 lg:pl-72 flex flex-col min-h-screen">
         
-        {/* Top Operational Status Banner */}
-        <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-stone-800 space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Executive Sticky Topbar */}
+        <header className="sticky top-0 z-30 h-16 bg-white/95 backdrop-blur-md border-b border-stone-200/90 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 shadow-2xs">
+          
+          {/* Mobile Menu Button & Breadcrumbs */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2 rounded-xl border border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 text-xs font-medium text-stone-500">
+              <span className="text-stone-400">Console</span>
+              <ChevronRight className="w-3.5 h-3.5 text-stone-300" />
+              <span className="font-bold text-stone-900 capitalize">
+                {activeTab === "kyc" && "Advocate KYC Queue"}
+                {activeTab === "questions" && "Citizen Legal Inquiries"}
+                {activeTab === "answers" && "Advocate Legal Advice"}
+                {activeTab === "consultations" && "Consultations Oversight"}
+                {activeTab === "categories" && "Practice Categories"}
+                {activeTab === "analytics" && "Platform Health & Metrics"}
+                {activeTab === "admins" && "Administrative Team & RBAC"}
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Search in Header */}
+          <div className="hidden md:flex items-center flex-1 max-w-xs mx-4">
+            <div className="relative w-full">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+              <input
+                type="text"
+                value={activeTab === "kyc" ? kycSearch : activeTab === "questions" ? questionSearch : activeTab === "admins" ? adminSearchQuery : ""}
+                onChange={(e) => {
+                  if (activeTab === "kyc") setKycSearch(e.target.value);
+                  else if (activeTab === "questions") setQuestionSearch(e.target.value);
+                  else if (activeTab === "admins") setAdminSearchQuery(e.target.value);
+                }}
+                placeholder="Quick search in view..."
+                className="w-full bg-stone-100/80 border border-stone-200/80 rounded-xl pl-8 pr-8 py-1.5 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-stone-400 transition-all font-medium"
+              />
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-stone-400 bg-stone-200/60 px-1 py-0.2 rounded border border-stone-300/60">
+                /
+              </span>
+            </div>
+          </div>
+
+          {/* Right Header Utilities */}
+          <div className="flex items-center gap-3">
+            {/* Quick Refresh */}
+            <button
+              onClick={() => {
+                loadPlatformData();
+                DataService.syncFromSupabase().then(() => {
+                  loadPlatformData();
+                  notifyAction("Refreshed all metrics from Supabase.");
+                });
+              }}
+              title="Refresh telemetry"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-xs font-bold text-stone-700 shadow-2xs transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-stone-500" />
+              <span>Refresh</span>
+            </button>
+
+            {/* Public Site Link */}
+            <Link
+              href="/"
+              target="_blank"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-xs font-bold text-stone-700 shadow-2xs transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-stone-500" />
+              <span>Citizen View</span>
+            </Link>
+
+            {/* Operator Profile Pill */}
+            <div className="flex items-center gap-2 pl-3 border-l border-stone-200">
+              <div className="w-8 h-8 rounded-lg bg-stone-900 text-amber-400 flex items-center justify-center font-black text-xs">
+                {adminUser?.name?.charAt(0).toUpperCase() || "A"}
+              </div>
+              <div className="hidden sm:block text-left leading-tight">
+                <div className="text-xs font-bold text-stone-900 truncate max-w-[120px]">
+                  {adminUser?.name || "Admin"}
+                </div>
+                <div className="text-[10px] text-stone-500">
+                  {adminUser?.isSuperAdmin ? "Root Authority" : "Full Admin"}
+                </div>
+              </div>
+
+              {/* Fast logout action */}
+              <button
+                onClick={handleLogout}
+                title="Sign out of Admin Console"
+                className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer ml-1"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Dynamic Page Content */}
+        <main className="p-4 sm:p-6 lg:p-8 space-y-6 flex-1 max-w-7xl w-full mx-auto">
+          
+          {/* Executive Section Header with Actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200/80">
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  Platform Operations & Governance
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-stone-900">
+                  {activeTab === "kyc" && "Advocate Identity & KYC Verification"}
+                  {activeTab === "questions" && "Citizen Queries & Case Triage"}
+                  {activeTab === "answers" && "Advocate Legal Answers & Citations"}
+                  {activeTab === "consultations" && "Consultations & Chamber Bookings"}
+                  {activeTab === "categories" && "Practice Specialties & Legal Categories"}
+                  {activeTab === "analytics" && "Platform Operations & Metric Telemetry"}
+                  {activeTab === "admins" && "Administrator Management & Access Control"}
                 </h1>
-                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Telemetry
-                </span>
-                {adminUser?.isSuperAdmin ? (
-                  <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                    👑 Super Admin (Root Authority)
-                  </span>
-                ) : canManageAdmins ? (
-                  <span className="bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                    ⚡ Full Access Admin
-                  </span>
-                ) : (
-                  <span className="bg-stone-700 text-stone-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                    🛡️ Scoped Moderator
+                {activeTab === "kyc" && pendingKycCount > 0 && (
+                  <span className="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black px-2.5 py-0.5 rounded-full">
+                    {pendingKycCount} Needs Verification
                   </span>
                 )}
               </div>
-              <p className="text-xs text-stone-400 mt-1">
-                Active Session: <span className="text-stone-200 font-semibold">{adminUser?.name || "Chief Administrator"}</span> ({adminUser?.email}) • Department: <span className="text-stone-300">{adminUser?.department || "Judicial Administration"}</span>
+              <p className="text-xs text-stone-500 mt-1">
+                {activeTab === "kyc" && "Review Bar Council certificates, national identity documents, and chamber registrations."}
+                {activeTab === "questions" && "Moderate questions submitted by public citizens, adjust urgency, and manage triage."}
+                {activeTab === "answers" && "Audit answers provided by registered advocates, verify legal citations, or remove violations."}
+                {activeTab === "consultations" && "Track client bookings, consultation fees, dispute mediation, and status updates."}
+                {activeTab === "categories" && "Configure the legal categories and specializations available to citizens and advocates."}
+                {activeTab === "analytics" && "High-level overview of platform traction, engagement, advocate adoption, and response rates."}
+                {activeTab === "admins" && "Provision administrators, configure granular RBAC permissions, and enforce Super Admin invariants."}
               </p>
             </div>
-          </div>
 
-          {/* Global Impact Summary Counters */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 pt-3 border-t border-stone-800">
-            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-              <div className="text-[10px] uppercase font-bold text-stone-400">Total Inquiries</div>
-              <div className="text-lg font-black text-white">{stats.totalQuestions || 0}</div>
-            </div>
-
-            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-              <div className="text-[10px] uppercase font-bold text-stone-400">Resolved Queries</div>
-              <div className="text-lg font-black text-emerald-400">{stats.resolvedQuestions || 0}</div>
-            </div>
-
-            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-              <div className="text-[10px] uppercase font-bold text-stone-400">Verified Advocates</div>
-              <div className="text-lg font-black text-brand-coral">{stats.verifiedLawyers || 0}</div>
-            </div>
-
-            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50 relative overflow-hidden">
-              {pendingKycCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full animate-ping" />
+            <div className="flex items-center gap-2">
+              {activeTab === "admins" && canManageAdmins && (
+                <button
+                  type="button"
+                  onClick={handleOpenAddAdmin}
+                  className="bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+                >
+                  <UserPlus className="w-4 h-4 text-amber-400" />
+                  <span>Provision New Admin</span>
+                </button>
               )}
-              <div className="text-[10px] uppercase font-bold text-amber-400">KYC Queue</div>
-              <div className="text-lg font-black text-amber-300">{pendingKycCount} Pending</div>
-            </div>
 
-            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-              <div className="text-[10px] uppercase font-bold text-stone-400">Legal Answers</div>
-              <div className="text-lg font-black text-white">{stats.totalAnswers || 0}</div>
-            </div>
-
-            <div className="bg-stone-800/60 p-3 rounded-2xl border border-stone-700/50">
-              <div className="text-[10px] uppercase font-bold text-stone-400">Consultations</div>
-              <div className="text-lg font-black text-purple-400">{stats.totalConsultations || 0}</div>
+              {activeTab === "categories" && canManageCategories && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddCat(!showAddCat)}
+                  className="bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-amber-400" />
+                  <span>Add Practice Specialty</span>
+                </button>
+              )}
             </div>
           </div>
-        </div>
 
-      {/* Action Notification Banner */}
-      {actionSuccessMsg && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <span>{actionSuccessMsg}</span>
+          {/* High-Density KPI Metric Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-stone-300 transition-colors">
+              <div className="flex items-center justify-between text-stone-400 mb-1.5">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-stone-500">Queries</span>
+                <MessageSquare className="w-3.5 h-3.5 text-stone-400" />
+              </div>
+              <div className="text-xl font-black text-stone-900">{stats.totalQuestions || 0}</div>
+              <div className="text-[10px] text-stone-400 mt-0.5">Total citizen queries</div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-stone-300 transition-colors">
+              <div className="flex items-center justify-between text-stone-400 mb-1.5">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-stone-500">Resolved</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              </div>
+              <div className="text-xl font-black text-emerald-600">{stats.resolvedQuestions || 0}</div>
+              <div className="text-[10px] text-emerald-700/80 mt-0.5">Advice delivered</div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-stone-300 transition-colors">
+              <div className="flex items-center justify-between text-stone-400 mb-1.5">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-stone-500">Advocates</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-brand-coral" />
+              </div>
+              <div className="text-xl font-black text-brand-coral">{stats.verifiedLawyers || 0}</div>
+              <div className="text-[10px] text-stone-400 mt-0.5">Verified lawyers</div>
+            </div>
+
+            <div className={`p-4 rounded-2xl border shadow-2xs transition-colors relative overflow-hidden ${
+              pendingKycCount > 0 ? "bg-amber-50/70 border-amber-200" : "bg-white border-stone-200"
+            }`}>
+              {pendingKycCount > 0 && (
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              )}
+              <div className="flex items-center justify-between text-stone-400 mb-1.5">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-800">KYC Queue</span>
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+              </div>
+              <div className="text-xl font-black text-amber-800">{pendingKycCount}</div>
+              <div className="text-[10px] text-amber-700/90 mt-0.5">Pending approval</div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-stone-300 transition-colors">
+              <div className="flex items-center justify-between text-stone-400 mb-1.5">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-stone-500">Legal Answers</span>
+                <Scale className="w-3.5 h-3.5 text-blue-500" />
+              </div>
+              <div className="text-xl font-black text-stone-900">{stats.totalAnswers || 0}</div>
+              <div className="text-[10px] text-stone-400 mt-0.5">Verified answers</div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-stone-300 transition-colors">
+              <div className="flex items-center justify-between text-stone-400 mb-1.5">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-stone-500">Consultations</span>
+                <Calendar className="w-3.5 h-3.5 text-purple-500" />
+              </div>
+              <div className="text-xl font-black text-purple-600">{stats.totalConsultations || 0}</div>
+              <div className="text-[10px] text-stone-400 mt-0.5">Total bookings</div>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setActionSuccessMsg(null)}
-            className="text-emerald-700 hover:text-emerald-900 p-1 rounded-lg"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
-      {/* Navigation Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-stone-200 pb-3">
-        {canManageKyc && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("kyc")}
-            className={`relative px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "kyc"
-                ? "bg-stone-900 text-white shadow-sm"
-                : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4 text-brand-coral" />
-            <span>Lawyer KYC Verification Hub</span>
-            {pendingKycCount > 0 && (
-              <span className="bg-amber-500 text-stone-900 text-[10px] font-black px-2 py-0.5 rounded-full ml-1 animate-pulse">
-                {pendingKycCount} Action
-              </span>
-            )}
-          </button>
-        )}
-
-        {canManageQuestions && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("questions")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "questions"
-                ? "bg-stone-900 text-white shadow-sm"
-                : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
-            }`}
-          >
-            <MessageSquare className="w-4 h-4 text-emerald-600" />
-            <span>Citizen Queries Moderation</span>
-            <span className="text-[10px] text-stone-400">({questions.length})</span>
-          </button>
-        )}
-
-        {canManageAnswers && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("answers")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "answers"
-                ? "bg-stone-900 text-white shadow-sm"
-                : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
-            }`}
-          >
-            <Scale className="w-4 h-4 text-blue-600" />
-            <span>Legal Advice & Answers</span>
-            <span className="text-[10px] text-stone-400">({answers.length})</span>
-          </button>
-        )}
-
-        {canManageConsultations && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("consultations")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "consultations"
-                ? "bg-stone-900 text-white shadow-sm"
-                : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
-            }`}
-          >
-            <Calendar className="w-4 h-4 text-purple-600" />
-            <span>Consultations Oversight</span>
-            <span className="text-[10px] text-stone-400">({consultations.length})</span>
-          </button>
-        )}
-
-        {canManageCategories && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("categories")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "categories"
-                ? "bg-stone-900 text-white shadow-sm"
-                : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
-            }`}
-          >
-            <Layers className="w-4 h-4 text-amber-600" />
-            <span>Categories</span>
-          </button>
-        )}
-
-        {canViewAnalytics && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("analytics")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "analytics"
-                ? "bg-stone-900 text-white shadow-sm"
-                : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
-            }`}
-          >
-            <BarChart3 className="w-4 h-4 text-teal-600" />
-            <span>Platform Health</span>
-          </button>
-        )}
-
-        {/* Tab 7: Admin Team & Role-Based Access Control (Only for Super Admin or Full Access Admins) */}
-        {canManageAdmins && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("admins")}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "admins"
-                ? "bg-stone-900 text-white shadow-sm"
-                : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
-            }`}
-          >
-            <Users className="w-4 h-4 text-brand-coral" />
-            <span>Admin Team & Role Access</span>
-            <span className="text-[10px] bg-brand-coral/10 text-brand-coral font-bold px-2 py-0.5 rounded-full">
-              {adminUsers.length}
-            </span>
-          </button>
-        )}
-      </div>
+          {/* Action Notification Banner */}
+          {actionSuccessMsg && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl text-xs font-bold flex items-center justify-between shadow-2xs animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>{actionSuccessMsg}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActionSuccessMsg(null)}
+                className="text-emerald-700 hover:text-emerald-900 p-1 rounded-lg hover:bg-emerald-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
       {/* ========================================================================= */}
       {/* TAB 1: LAWYER KYC VERIFICATION HUB (USER PRIORITY) */}
@@ -1884,19 +2157,21 @@ export default function AdminDashboardPage() {
       </main>
 
       {/* 3. DEDICATED ADMIN EXECUTIVE FOOTER */}
-      <footer className="mt-auto bg-stone-900 border-t border-stone-800 text-stone-400 text-xs py-5 px-4 sm:px-6 lg:px-8">
+      <footer className="mt-auto bg-white border-t border-stone-200 text-stone-500 text-xs py-5 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
-          <div className="flex items-center gap-2 text-stone-300 font-medium">
-            <Shield className="w-3.5 h-3.5 text-amber-400" />
+          <div className="flex items-center gap-2 text-stone-700 font-medium">
+            <Shield className="w-3.5 h-3.5 text-amber-600" />
             <span>Ukil Judicial & Administrative Console</span>
-            <span className="text-stone-600">•</span>
-            <span className="text-stone-400">Restricted Internal System</span>
+            <span className="text-stone-300">•</span>
+            <span className="text-stone-500">Restricted Internal System</span>
           </div>
-          <div className="text-stone-500 font-mono">
+          <div className="text-stone-400 font-mono">
             Real-time audit logging active • Super Admin Invariant strictly enforced • Version 3.4
           </div>
         </div>
       </footer>
+
+      </div>
 
       {/* ========================================================================= */}
       {/* DETAILED KYC INSPECTION DRAWER / MODAL */}
